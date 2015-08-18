@@ -1,0 +1,390 @@
+---
+title: "Description of datazone linking process used to produce dissimilarity app data"
+author: "Jon Minton"
+date: "18 August 2015"
+output: word_document
+---
+
+# Introduction
+
+The purpose of this document is to describe the contents of the 2001 and 2011 census tables used to produce dissimilarity estimates
+previously, and the lookup files and process used to link between them. This document will also look at the variables available for ethnic groupings, country of origin, and religion between censuses, in order to make judgements about the consistency and comparability over time. 
+
+
+# Loading, linking, and standardising the structure of 2001 and 2011 census tables
+
+The R packages used are described and loaded in the code chunk below
+
+```{r}
+rm(list=ls())
+
+
+
+require(plyr)
+require(stringr)
+require(tidyr)
+require(dplyr)
+require(repmis)
+require(ggplot2)
+```
+
+
+This section will first load the source data tables from the 2001 census, then data from the 
+2011 data, followed by the lookup file used to link between them.
+The function `source_DropboxData` from the `repmis` package is used to load these tables directly from 
+Dropbox. The files themselves are on the USI Dropbox account, in the `data` subdirectory.
+The table inputs are then passed to the `tbl_df` function within the `dplyr` package to improve their appearance
+when being displayed on the console. Doing this can also improve the speed of R as much of the underling `dplyr` 
+code is written in C++. The `dplyr` piping function (` %>% ` ) is used here as well to make the code easier to read. 
+
+## Part 1: Loading 2001 output area tables
+
+```{r}
+###############
+
+# Load tables
+
+# 2001
+
+coo_2001 <- source_DropboxData(
+  file="Census__2001__KS005__Country_Of_Origin.csv",
+  key="erj713wnp535q20"
+  ) %>% tbl_df
+
+eg_2001 <- source_DropboxData(
+  file="Census__2001__KS006__Ethnic_Group_And_Language.csv",
+  key="kfgj930jel9qep0"
+  ) %>% tbl_df
+
+rel_2001 <- source_DropboxData(
+  file="Census__2001__KS007__Religion.csv",
+  key="zfnhe8kwxnpupwa"
+  ) %>% tbl_df
+
+```
+
+Three tables have now been loaded, using the following shorthand
+
+Shorthand | Description
+----------|------------
+coo       | Country of Origin
+eg        | Ethnic group
+rel       | Religion
+
+
+Let's now loook at the first few lines of these three data tables. 
+
+```{r}
+coo_2001
+
+eg_2001
+
+rel_2001
+
+```
+
+The variable `Zone Code` refers to 2001 output area codes. These need to be merged to 2001 datazones. 
+
+The subsequent columns (relabeled by me beforehand) contain different ways of subdividing populations within
+the output areas. 
+
+
+## Part 2: loading areal links
+Two link files are used to link the 2001 output areas to 2001 datazones. 
+
+* `OUTPUT_AREA_2001_Lookup` : _Original source still to be determined_
+* `Census_2011_Lookup__OA_TO_HIGHER_AREAS` : Sourced from the NRS. Further information is available [here](http://www.nrscotland.gov.uk/files/geography/2011-census/geog-2011-census-index-file-specification.pdf) 
+
+
+The link files, which I call `areal_links_pt1` and `areal_links_pt2`, are loaded as follows 
+
+```{r}
+area_links_pt1 <- source_DropboxData(
+  file="OUTPUT_AREA_2001_LOOKUP.csv",
+  key="39wszvlpxy4qvpf"
+  ) %>% tbl_df
+
+area_links_pt2 <- source_DropboxData(
+  file="Census_2011_Lookup__OA_TO_HIGHER_AREAS.csv",
+  key="95x5ozuw0c6xgxk"
+  ) %>% tbl_df
+
+
+area_links <- area_links_pt1 %>% 
+  inner_join(area_links_pt2) %>% 
+  select(
+    OutputArea2011Code,
+    NRSoldOutputArea2001Code,
+    OutputArea2001Code,
+    Datazone2001Code,
+    Easting,
+    Northing
+                     )
+
+```
+
+Again, let's look at the first few rows of each file. 
+
+
+```{r}
+
+area_links_pt1
+
+area_links_pt2
+
+area_links
+
+rm(area_links_pt1, area_links_pt2)
+
+```
+
+The first of these tables is used to link between the old NRS output codes, prefixed with `60QA`, to 
+the newer 2001 (UK standardised?) output area codes prefixed `S00`.  The second of these tables then 
+allows these figures to be linked to a wide range of higher geographies, including to 2001 datazones. __However 
+2011 datazones are not available within this file.__ 
+
+
+The following section of code renames some of the variables in datasets to make them consistent
+
+```{r}
+
+coo_2001 <- coo_2001 %>% rename(zonecode = `Zone Code`)
+eg_2001 <- eg_2001 %>% rename(zonecode= `Zone Code`)
+rel_2001 <- rel_2001 %>% rename(zonecode= `Zone Code`)
+
+area_links <- area_links %>%  
+  rename(
+    zonecode=NRSoldOutputArea2001Code,
+    datazone=Datazone2001Code
+  )
+
+coo_2001 <- coo_2001 %>% inner_join(area_links) %>% arrange(datazone)
+eg_2001 <- eg_2001 %>% inner_join(area_links) %>% arrange(datazone)
+rel_2001 <- rel_2001 %>% inner_join(area_links) %>% arrange(datazone)
+
+
+names(coo_2001) <- tolower(names(coo_2001))
+names(eg_2001) <- tolower(names(eg_2001))
+names(rel_2001) <- tolower(names(rel_2001))
+
+
+coo_2001
+
+eg_2001
+
+rel_2001
+
+
+coo_2001 <- coo_2001 %>% 
+  select(
+  -zonecode, -outputarea2011code,
+  -outputarea2001code, -easting, -northing
+  ) %>%
+  gather(
+    type,
+    count,
+    -datazone
+  ) %>% 
+  mutate(year=2001) %>%
+  arrange(datazone, year)
+
+eg_2001 <- eg_2001 %>%
+  select(
+    -zonecode, -outputarea2001code,
+    -outputarea2011code, -easting, -northing
+    ) %>%
+  gather(
+    type, count,
+    -datazone
+  ) %>% 
+  mutate(year=2001) %>% 
+  arrange(datazone, year)
+  
+rel_2001 <- rel_2001 %>%
+  select(
+    -zonecode, -outputarea2001code,
+    -outputarea2011code, -easting, -northing
+    ) %>%
+  gather(
+    type, count,
+    -datazone
+    ) %>%
+  mutate(year=2001) %>%
+  arrange(datazone, year)
+
+coo_2001
+eg_2001
+rel_2001
+
+```
+
+The final chunk of code aggregates counts by datazone, as well as removes gaelic/non gaelic sub groups within the 
+ethnic group files to avoid double counting of populations. 
+
+```{r}
+
+
+rel_2001 <- rel_2001 %>% group_by(datazone, year, type) %>% 
+  summarise(count=sum(count)) %>%
+  select(datazone, year, type, count)
+
+coo_2001 <- coo_2001 %>% group_by(datazone, year, type) %>%
+  summarise(count = sum(count)) %>%
+  select(datazone, year, type, count)
+
+eg_2001 <- eg_2001 %>% group_by(datazone, year, type) %>%
+  summarise(count = sum(count)) %>%
+  select(datazone, year, type, count)
+
+# Ethnic group counts do not add up correctly as categories on gaelic included
+
+eg_2001 <- eg_2001 %>%
+  filter(type!="gaelic_speaker_and_born_in_scotland" & type !="gaelic_speaker_and_not_born_in_scotland")
+
+
+rel_2001
+
+coo_2001
+
+eg_2001
+```
+
+
+## 2011 Tables
+
+The code belows does much the same as was done with the 2001 tables. However, 
+the census tables are already available within __2001__ datazone format and so the 
+additional linking is not needed
+
+```{r}
+# 2011
+
+# populations
+
+
+# ethnic group  2a    ks201sc
+eg_2011 <- source_DropboxData(
+  file="KS201SC.csv",
+  key="adxgd6edmvgyk82"
+  ) %>% tbl_df()
+
+
+# country of origin  2a ks 204sc
+coo_2011 <- source_DropboxData(
+  file="KS204SC.csv",
+  key="xrs0mxq9alumojs"
+  ) %>% tbl_df()
+
+
+# religion  2a 209scb
+
+rel_2011 <- source_DropboxData(
+  file="KS209SCb.csv",
+  key="aejzg3hbu443pxl"
+) %>% tbl_df()
+
+
+names(eg_2011) <- names(eg_2011) %>% tolower()
+names(coo_2011) <- names(coo_2011) %>% tolower()
+names(rel_2011) <- names(rel_2011) %>% tolower()
+
+
+eg_2011
+
+coo_2011
+
+rel_2011
+
+
+
+# filter away to total (the first v1)
+
+eg_2011 <- eg_2011 %>% rename(datazone=v1) %>% 
+  filter( datazone!="S92000003") %>% 
+  gather(
+    type,
+    count,
+    -datazone
+    ) %>% mutate(year=2011) %>%
+  mutate(
+    count=str_replace(count, "-", "0"),
+    count=str_replace(count, ",", ""),
+    count=as.numeric(as.character(count))
+    ) %>%
+  select(datazone, year, type, count)
+
+
+coo_2011 <- coo_2011 %>% rename(datazone=v1) %>%
+  filter(datazone!="S92000003") %>% 
+  gather(
+    type,
+    count,
+    -datazone
+  ) %>% mutate(year=2011) %>%
+  mutate(
+    count=str_replace(count, "-", "0"),
+    count=str_replace(count, ",", ""),
+    count=as.numeric(as.character(count))
+  ) %>%
+  select(datazone, year, type, count)
+
+
+rel_2011 <- rel_2011 %>% rename(datazone=v1) %>%
+  filter(datazone!="S92000003") %>% 
+  gather(
+    type,
+    count,
+    -datazone
+  ) %>% mutate(year=2011) %>%
+  mutate(
+    count=str_replace(count, "-", "0"),
+    count=str_replace(count, ",", ""),
+    count=as.numeric(as.character(count))
+  ) %>%
+  select(datazone, year, type, count)
+
+
+
+eg_2011
+
+coo_2011
+
+rel_2011
+
+```
+
+## Section summary
+
+This section has shown how the 2001 and 2011 censuses can be linked to 2001 datazones. At the time the data 
+processing was performed 2011 datazones were not constructed. However the 2011 areal lookup file is able to link
+between many areal unit types used in different censuses, as it works with the smallest areal unit types. 
+
+
+So far, although the 2001 and 2011 census tables have been put into a structurally similar format, they categories within 
+the three pairs of tables have not been reduced and mapped to a single, compatible schema. The next stage will describe 
+this process in more detail.
+
+
+
+# Linking categories between 2001 and 2011 census tables 
+
+Let's first summarise the different 'types' available in each of the six tables.
+
+```{r}
+
+eg <- eg_2001 %>% bind_rows(eg_2011)
+
+coo <- coo_2001 %>% bind_rows(coo_2011)
+
+rel <- rel_2001 %>% bind_rows(rel_2011)
+
+
+eg %>% xtabs( ~ type + year, data = .)
+
+coo %>% xtabs( ~ type + year, data = .)
+
+rel %>% xtabs( ~ type + year, data = .)
+
+```
+
+We can see that the categories are much more consistent between 2001 and 2011 for religion and country of origin than for ethnicity, and also that there are a lot of ethnicity categories and sub-categories. How these categories should be collapsed and mapped to a single schema is a researcher judgement. The dissimilarity app allowed researchers to select the categories they wanted to combine together themselves.
