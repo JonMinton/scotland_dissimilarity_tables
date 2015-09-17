@@ -47,7 +47,7 @@ dta_2001_count <- dta_2001_count %>% mutate_each(funs(
 write_csv(dta_2001_count, path="output_data/ethnicity_2001.csv")
 
 
-#2011: KS611SC: NS-Sec
+#2011
 
 dta_2011 <- read_csv(
   file="E:/Dropbox/Data/Census/Scotland 2011 Census/unzipped/2ablk/Output Area/KS201SC.csv"
