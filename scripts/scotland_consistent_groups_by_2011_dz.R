@@ -776,7 +776,8 @@ eth_simple_2011 <- eth_2011 %>%
 
 
 dz_simple_2001 <- eth_simple_2001 %>% 
-  inner_join(oa_dz_link) %>%
+  inner_join(nrs_oa_link) %>%
+  inner_join(oa_dz_link) %>% 
   mutate(year = 2001) %>% 
   select(
     dz_2011, 
