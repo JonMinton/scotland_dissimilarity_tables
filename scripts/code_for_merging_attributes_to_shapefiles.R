@@ -28,7 +28,7 @@ require(shiny)
 attributes_table <- read.csv("output_data/2011_datazones/ethnicity_4group_categories_datazones_2001_and_2011.csv")
 
 dz_2011_shp <- readShapeSpatial(
-  "shapefiles/scotland_2011_datazones/DZ_2011_EoR_Scotland.shp"
+  "shapefiles/scotland_2011_datazones/DZBdry_2011_DraftforConsultation.shp"
 )      
 
 

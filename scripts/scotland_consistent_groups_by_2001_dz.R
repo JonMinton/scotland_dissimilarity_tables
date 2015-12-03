@@ -708,3 +708,272 @@ write_csv(
 
 
 
+
+# Ethnicity ---------------------------------------------------------------
+
+
+
+# Start by constructing ethnicity counts for the whole of Scotland, then use LA 
+# lookup to match to the cities
+
+
+eth_2001 <- read_csv("output_data/ethnicity_2001.csv")
+eth_2011 <- read_csv("output_data/ethnicity_2011.csv")
+
+
+# For 2001, need NRS to standard OA lookup, 
+# For both, need to divide into simple white/nonwhite
+
+eth_simple_2001 <- eth_2001 %>% 
+  select(
+    oa_nrs = output_area,
+    total = `ALL PEOPLE`,
+    contains("White")
+  ) %>% 
+  mutate(
+    white = `Number White Scottish` + `Number Other White British` + `Number White Irish` + `Number Other White` ,
+    nonwhite = total - white
+  ) %>% 
+  select(oa_nrs, total, nonwhite)
+
+eth_simple_2011 <- eth_2011 %>% 
+  select(
+    oa_2011= output_area,
+    total = `All people`,
+    white = `White`
+  ) %>% 
+  mutate(
+    nonwhite = total - white
+  ) %>% 
+  select(
+    oa_2011,
+    total,
+    nonwhite
+  )
+
+
+
+# Final form should be: 
+
+# dz_2011
+# la_name
+# year
+# total
+# nonwhite
+
+
+dz_simple_2001 <- eth_simple_2001 %>% 
+  inner_join(nrs_oa_link) %>%
+  inner_join(oa_dz_link) %>% 
+  mutate(year = 2001) %>% 
+  select(
+    dz_2001, 
+    la_name,
+    year,
+    total,
+    nonwhite
+  ) %>% 
+  group_by(
+    dz_2001, 
+    la_name, 
+    year
+  ) %>%
+  summarise(
+    total = sum(total),
+    nonwhite = sum(nonwhite)
+  )
+
+
+
+dz_simple_2011 <- eth_simple_2011 %>% 
+  inner_join(oa_dz_link) %>% 
+  mutate(year = 2011) %>% 
+  select(
+    dz_2001, 
+    la_name,
+    year, 
+    total,
+    nonwhite
+  ) %>% 
+  group_by(
+    dz_2001,
+    la_name,
+    year
+  ) %>% 
+  summarise(
+    total = sum(total),
+    nonwhite = sum(nonwhite)
+  )
+
+
+dz_eth <-
+  dz_simple_2001 %>% 
+  bind_rows(dz_simple_2011)
+
+# Write this out and send to Gavin, Duncan & Jing
+
+write_csv(
+  dz_eth,
+  path = "output_data/ethnicity_datazones_2001_and_2011.csv"        
+)
+
+
+
+
+# Four group ethnicity classification -------------------------------------
+# requested by Nick & Jin November 2015
+
+# The desired categories are: 
+# 1) White
+# 2) Chinese
+# 3) Pakistani
+# 4) Other
+
+# > names(eth_2001)
+# [1] "output_area"                                                                                                    
+# [2] "ALL PEOPLE"                                                                                                     
+# [WHITE] [3] "Number White Scottish"                                                                                          
+# [WHITE] [4] "Number Other White British"                                                                                     
+# [WHITE] [5] "Number White Irish"                                                                                             
+# [WHITE] [6] "Number Other White"                                                                                             
+# [OTHER] [7] "Number Indian"                                                                                                  
+# [PAKISTANI] [8] "Number Pakistani"                                                                                               
+# [OTHER] [9] "Number Bangladeshi"                                                                                             
+# [OTHER] [10] "Number Other South Asian"                                                                                       
+# [CHINESE] [11] "Number Chinese"                                                                                                 
+# [OTHER] [12] "Number Caribbean"                                                                                               
+# [OTHER] [13] "Number African"                                                                                                 
+# [OTHER] [14] "Number Black Scottish or Other Black"                                                                           
+# [OTHER] [15] "Number Any Mixed Background"                                                                                    
+# [OTHER] [16] "Number Other Ethnic Group"                                                                                      
+# [NA] [17] "Number of people aged 3 and over, who understand, speak, read or write Gaelic and who were born in Scotland"    
+# [NA] [18] "Number of people aged 3 and over, who understand, speak, read or write Gaelic and who were not born in Scotland"
+
+eth_2001_4grp <- eth_2001 %>% transmute(
+  oa_nrs = output_area, 
+  all_check = `ALL PEOPLE`,
+  white = `Number White Scottish` + `Number Other White British` + 
+    `Number White Irish` + `Number Other White`, 
+  pakistani = `Number Pakistani`, 
+  chinese = `Number Chinese`, 
+  other = `Number Indian` + `Number Bangladeshi` + `Number Other South Asian` + 
+    `Number Caribbean` + `Number African` + `Number Black Scottish or Other Black` +
+    `Number Any Mixed Background` + `Number Other Ethnic Group`
+) %>% mutate(total = white + pakistani + chinese + other) %>% 
+  select(oa_nrs, total, white, pakistani, chinese, other)
+
+# evaluates TRUE
+
+# > names(eth_2011)
+# [1] "output_area"                                                                                     
+# [2] "All people"                                                                                      
+# [3] [WHITE] "White"                                                                                           
+# [4] [NA] "White: Scottish"                                                                                 
+# [5] [NA] "White: Other British"                                                                            
+# [6] [NA] "White: Irish"                                                                                    
+# [7] [NA] "White: Gypsy/Traveller"                                                                          
+# [8] [NA] "White: Polish"                                                                                   
+# [9] [NA] "White: Other White"                                                                              
+# [10] [OTHER] "Mixed or multiple ethnic groups"                                                                 
+# [11] [NA] "Asian, Asian Scottish or Asian British"                                                          
+# [12] [PAKISTANI] "Asian, Asian Scottish or Asian British: Pakistani, Pakistani Scottish or Pakistani British"      
+# [13] [OTHER] "Asian, Asian Scottish or Asian British: Indian, Indian Scottish or Indian British"               
+# [14] [OTHER] "Asian, Asian Scottish or Asian British: Bangladeshi, Bangladeshi Scottish or Bangladeshi British"
+# [15] [CHINESE] "Asian, Asian Scottish or Asian British: Chinese, Chinese Scottish or Chinese British"            
+# [16] [OTHER] "Asian, Asian Scottish or Asian British: Other Asian"                                             
+# [17] [OTHER] "African"                                                                                         
+# [18] [NA] "African: African, African Scottish or African British"                                           
+# [19] [NA] "African: Other African"                                                                          
+# [20] [OTHER] "Caribbean or Black"                                                                              
+# [21] [NA] "Caribbean or Black: Caribbean, Caribbean Scottish or Caribbean British"                          
+# [22] [NA] "Caribbean or Black: Black, Black Scottish or Black British"                                      
+# [23] [NA] "Caribbean or Black: Other Caribbean or Black"                                                    
+# [24] [OTHER] "Other ethnic groups"                                                                             
+# [25] [NA] "Other ethnic groups: Arab, Arab Scottish or Arab British"                                        
+# [26] [NA] "Other ethnic groups: Other ethnic group" 
+
+
+eth_2011_4grp <- eth_2011 %>% transmute(
+  oa_2011= output_area,
+  all_check = `All people`,
+  white = White, 
+  pakistani = `Asian, Asian Scottish or Asian British: Pakistani, Pakistani Scottish or Pakistani British`, 
+  chinese = `Asian, Asian Scottish or Asian British: Chinese, Chinese Scottish or Chinese British`, 
+  other = `Mixed or multiple ethnic groups` + `Asian, Asian Scottish or Asian British: Indian, Indian Scottish or Indian British` + 
+    `Asian, Asian Scottish or Asian British: Bangladeshi, Bangladeshi Scottish or Bangladeshi British` + 
+    `Asian, Asian Scottish or Asian British: Other Asian` + `African` + `Caribbean or Black` +
+    `Other ethnic groups` 
+) %>%  mutate(total = white + pakistani + chinese + other) %>% 
+  select(oa_2011, total, white, pakistani, chinese, other)
+
+
+
+dz_4grp_2001 <- eth_2001_4grp %>% 
+  inner_join(nrs_oa_link) %>%
+  inner_join(oa_dz_link) %>% 
+  mutate(year = 2001) %>% 
+  select(
+    dz_2001, 
+    la_name,
+    year,
+    total,
+    white,
+    pakistani,
+    chinese,
+    other
+  ) %>% 
+  group_by(
+    dz_2001, 
+    la_name, 
+    year
+  ) %>%
+  summarise(
+    total = sum(total),
+    white = sum(white),
+    pakistani = sum(pakistani),
+    chinese = sum(chinese),
+    other = sum(other)
+  )
+
+
+
+dz_4grp_2011 <- eth_2011_4grp %>% 
+  inner_join(oa_dz_link) %>% 
+  mutate(year = 2011) %>% 
+  select(
+    dz_2001, 
+    la_name,
+    year, 
+    total,
+    white,
+    pakistani,
+    chinese,
+    other
+  ) %>% 
+  group_by(
+    dz_2001,
+    la_name,
+    year
+  ) %>% 
+  summarise(
+    total = sum(total),
+    white = sum(white),
+    pakistani = sum(pakistani),
+    chinese = sum(chinese),
+    other = sum(other)
+  )
+
+
+
+dz_eth_4grp <-
+  dz_4grp_2001 %>% 
+  bind_rows(dz_4grp_2011)
+
+# Write this out and send to Gavin, Duncan & Jing
+
+write_csv(
+  dz_eth_4grp,
+  path = "output_data/ethnicity_4group_categories_datazones_2001_and_2011.csv"        
+)
+
+
