@@ -64,6 +64,7 @@ writeOGR(dz_2001_shp_2011data_merged, dsn = "shapefiles_with_attributes", layer 
 # Attribute data 
 
 attributes_table <- read.csv("output_data/ethnicity_datazones_2001_and_2011.csv")
+attributes_table <- attributes_table  %>% mutate(white = total - nonwhite)
 
 attributes_table_2001 <- attributes_table %>% filter(year == 2001)
 attributes_table_2001 <- attributes_table_2001[!duplicated(attributes_table_2001$dz_2001),]
