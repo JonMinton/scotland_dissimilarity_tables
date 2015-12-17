@@ -1,0 +1,13 @@
+[PROJECT]
+   nbview=1
+   [VIEW]
+      id=1
+      name=View 1
+      nblayer=1
+      [LAYER]
+         file=file:/E:/repos/scotland_dissimilarity_tables/shapefiles_with_attributes/resaved_in_arcgis/2grp_2001/ethnicity_2001dzs_2cats_2001dataB.shp
+         name=ethnicity_2001dzs_2cats_2001dataB
+         visible=true
+      [/LAYER]
+   [/VIEW]
+[/PROJECT]
