@@ -38,7 +38,7 @@ dta_2011 <- read_csv(
 names(dta_2011)[1] <- "output_area"
 
 dta_2011 <- dta_2011 %>% filter(str_detect(output_area, "^S00"))
-dta_2011[,-1] <- lapply(dta_2011[,-1], function(x) as.numeric(str_replace(str_trim(x), "-", "0")))
+dta_2011[,-1] <- lapply(dta_2011[,-1], function(x) as.numeric(str_replace(str_replace(str_trim(x), ",", ""), "-", "0")))
 dta_2011[,-1] <- lapply(dta_2011[,-1], function(x) {tmp <- is.na(x); x[tmp] <- 0; return(x)})
 
 write_csv(dta_2011, path="output_data/accommodationtype_2011.csv")

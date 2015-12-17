@@ -16,7 +16,8 @@ require(dplyr)
 
 dta_2001 <- read_csv(
   file="E:/Dropbox/Data/Census/Scotland 2001 Census/from_scrol_dvd/data/oa/KS17.csv",
-  skip = 4
+  skip = 4, 
+  col_types = "cccccccc"
 )
 
 
