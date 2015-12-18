@@ -476,13 +476,219 @@ write_csv(ecact_2011, path = "output_data/oa_harmonised/ecact_2011.csv")
 
 
 #############################################################################################
-#### START AGAIN HERE - ETHNICITY, INDUSTRY, LLTI, GENERAL HEALTH, MARITAL STATUS, NS-SEC, RELIGION, TENURE, HOUSEHOLD TYPE
+#### START AGAIN HERE - ETHNICITY, LLTI, GENERAL HEALTH, MARITAL STATUS, NS-SEC, RELIGION, TENURE, HOUSEHOLD TYPE
 ##############################################################################################
 
+eth_2001 <- read_csv("output_data/ethnicity_2001.csv")
+eth_2011 <- read_csv("output_data/ethnicity_2011.csv")
 
-
+# > names(eth_2001)
+# [1] "output_area"                                                                                                    
+# [2] "ALL PEOPLE"                                                                                                     
+# [3] "Number White Scottish"                                                                                          
+# [4] "Number Other White British"                                                                                     
+# [5] "Number White Irish"                                                                                             
+# [6] "Number Other White"                                                                                             
+# [7] "Number Indian"                                                                                                  
+# [8] "Number Pakistani"                                                                                               
+# [9] "Number Bangladeshi"                                                                                             
+# [10] "Number Other South Asian"                                                                                       
+# [11] "Number Chinese"                                                                                                 
+# [12] "Number Caribbean"                                                                                               
+# [13] "Number African"                                                                                                 
+# [14] "Number Black Scottish or Other Black"                                                                           
+# [15] "Number Any Mixed Background"                                                                                    
+# [16] "Number Other Ethnic Group"                                                                                      
+# [17] "Number of people aged 3 and over, who understand, speak, read or write Gaelic and who were born in Scotland"    
+# [18] "Number of people aged 3 and over, who understand, speak, read or write Gaelic and who were not born in Scotland"
 # 
 
+names(eth_2001) <- c("output_area", "total", "wht_scot", "wht_othbrit", "wht_irish", "wht_other",
+                     "indian", "pakistani", "bangladeshi", "other_south_asian", "chinese", 
+                     "caribbean", "african", "black_other", "mixed", "other", "num_gaelic_brnscot", "num_gaelic_notbrnscot"
+                     )
+# 
+# names(eth_2011)
+# 
+# > names(eth_2011)
+# [1] "output_area"                                                                                     
+# [2] "All people"                                                                                      
+# [3] "White"                                                                                           
+# [4] "White: Scottish"                                                                                 
+# [5] "White: Other British"                                                                            
+# [6] "White: Irish"                                                                                    
+# [7] "White: Gypsy/Traveller"                                                                          
+# [8] "White: Polish"                                                                                   
+# [9] "White: Other White"                                                                              
+# [10] "Mixed or multiple ethnic groups"                                                                 
+# [11] "Asian, Asian Scottish or Asian British"                                                          
+# [12] "Asian, Asian Scottish or Asian British: Pakistani, Pakistani Scottish or Pakistani British"      
+# [13] "Asian, Asian Scottish or Asian British: Indian, Indian Scottish or Indian British"               
+# [14] "Asian, Asian Scottish or Asian British: Bangladeshi, Bangladeshi Scottish or Bangladeshi British"
+# [15] "Asian, Asian Scottish or Asian British: Chinese, Chinese Scottish or Chinese British"            
+# [16] "Asian, Asian Scottish or Asian British: Other Asian"                                             
+# [17] "African"                                                                                         
+# [18] "African: African, African Scottish or African British"                                           
+# [19] "African: Other African"                                                                          
+# [20] "Caribbean or Black"                                                                              
+# [21] "Caribbean or Black: Caribbean, Caribbean Scottish or Caribbean British"                          
+# [22] "Caribbean or Black: Black, Black Scottish or Black British"                                      
+# [23] "Caribbean or Black: Other Caribbean or Black"                                                    
+# [24] "Other ethnic groups"                                                                             
+# [25] "Other ethnic groups: Arab, Arab Scottish or Arab British"                                        
+# [26] "Other ethnic groups: Other ethnic group"   
+# 
+names(eth_2011) <- c(
+  "output_area", "total", "white", "white_scottish", "white_othbrit", "white_irish", "white_gypsy",
+  "white_polish", "white_other", "mixed", "asian", "asian_pakistani", "asian_indian", "asian_bangladeshi", 
+  "asian_chinese", "asian_other", "african", "african_african", "african_other", "carib",
+  "carib_carib", "carib_black","carib_other", "other", "other_arab", "other_other"
+  )
+
+
+
+# > eth_2001 %>% 
+# transmute(output_area, total, 
+#           white = wht_scot + wht_othbrit + wht_irish + wht_other, 
+#           pakistani, chinese, 
+#           other = indian + bangladeshi + other_south_asian + caribbean + african + black_other + mixed + other) %>% mutate(t2 = white + pakistani + chinese + other, check = total == t2) %>% xtabs( ~ check , data = .)
+# check
+# TRUE 
+# 42604 
+
+eth_2001 <-  eth_2001 %>% 
+  transmute(output_area, total, 
+          white = wht_scot + wht_othbrit + wht_irish + wht_other, 
+          pakistani, chinese, 
+          other = indian + bangladeshi + other_south_asian + caribbean + 
+            african + black_other + mixed + other) 
+
+names(eth_2011) <- c(
+  "output_area", "total", "white", "white_scottish", "white_othbrit", "white_irish", "white_gypsy",
+  "white_polish", "white_other", "mixed", "asian", "asian_pakistani", "asian_indian", "asian_bangladeshi", 
+  "asian_chinese", "asian_other", "african", "african_african", "african_other", "carib",
+  "carib_carib", "carib_black","carib_other", "other", "other_arab", "other_other"
+)
+
+# > eth_2011 %>% 
+# + transmute(output_area, total, white = white, 
+#             +           pakistani = asian_pakistani, chinese = asian_chinese, 
+#             +           other = asian_indian + asian_bangladeshi + asian_other + african + carib + other + mixed) %>% mutate(t2 = white + pakistani + chinese + other, check = total == t2) %>% xtabs( ~ check, data  = .)
+# check
+# TRUE 
+# 46351
+
+eth_2011 <- eth_2011 %>% 
+transmute(output_area, total, white = white, 
+          pakistani = asian_pakistani, chinese = asian_chinese, 
+          other = asian_indian + asian_bangladeshi + asian_other + african + carib + other + mixed) 
+
+write_csv(eth_2001, path = "output_data/oa_harmonised/eth_2001.csv")
+write_csv(eth_2011, path = "output_data/oa_harmonised/eth_2011.csv")
+
+
+
+#LLTI
+
+llti_2001 <- read_csv("output_data/llti_2001.csv")
+llti_2011 <- read_csv("output_data/llti_2011.csv")
+
+names(llti_2001) <- c("output_area", "total", "with_llti", "without_llti")
+names(llti_2011) <- c("output_area", "total", "lot", "little", "not")
+
+llti_2001 <- llti_2001 %>% transmute(output_area, total, llti = with_llti, no_llti = without_llti)
+llti_2011 <- llti_2011 %>% transmute(output_area, total, llti = lot + little, no_llti = not)
+# > llti_2001 %>% mutate(t2 = llti + no_llti, check = total == t2) %>% xtabs( ~ check, data = .)
+# check
+# TRUE 
+# 42604 
+# > llti_2011 %>% mutate(t2 = llti + no_llti, check = total == t2) %>% xtabs( ~ check, data = .)
+# check
+# TRUE 
+# 46351 
+
+write_csv(llti_2001, path = "output_data/oa_harmonised/llti_2001.csv")
+write_csv(llti_2011, path = "output_data/oa_harmonised/llti_2011.csv")
+
+##### General health
+
+gh_2001 <- read_csv("output_data/generalhealth_2001.csv")
+gh_2011 <- read_csv("output_data/generalhealth_2011.csv")
+
+names(gh_2001) <- c("output_area", "total", "good", "fairly_good", "not_good")
+names(gh_2011) <- c("output_area", "total", "very_good", "good", "fair", "bad", "very_bad")
+
+gh_2001 <- gh_2001 %>% transmute(output_area, total, good = good + fairly_good, not_good)
+gh_2011 <- gh_2011 %>% transmute(output_area, total, good = good + very_good, not_good = fair + bad + very_bad)
+
+
+# > gh_2001 %>% mutate(t2 = good + not_good, check = total == t2) %>% xtabs(~check, data = .)
+# check
+# TRUE 
+# 42604 
+# > gh_2011 %>% mutate(t2 = good + not_good, check = total == t2) %>% xtabs(~check, data = .)
+# check
+# TRUE 
+# 46351 
+
+write_csv(gh_2001, path = "output_data/oa_harmonised/general_health_2001.csv")
+write_csv(gh_2011, path = "output_data/oa_harmonised/general_health_2011.csv")
+
+
+# Marital status
+
+ms_2001 <- read_csv("output_data/maritalstatus_2001.csv")
+ms_2011 <- read_csv("output_data/maritalstatus_2011.csv")
+
+names(ms_2001)
+names(ms_2011)
+
+# > names(ms_2001)
+# [1] "output_area"                                                            
+# [2] "All people aged 16 and over"                                            
+# [3] "Number of people aged 16 and over Single (never married)"               
+# [4] "Number of people aged 16 and over Married"                              
+# [5] "Number of people aged 16 and over Re-married"                           
+# [6] "Number of people aged 16 and over Separated (but still legally married)"
+# [7] "Number of people aged 16 and over Divorced"                             
+# [8] "Number of people aged 16 and over Widowed" 
+names(ms_2001) <- c("output_area", "total", "single", "married", "remarried", "separated", "divorced", "widowed")
+
+# > names(ms_2011)
+# [1] "output_area"                                                                           
+# [2] "All people aged 16 and over"                                                           
+# [3] "Single (never married or never registered a same-sex civil partnership)"               
+# [4] "Married"                                                                               
+# [5] "In a registered same-sex civil partnership"                                            
+# [6] "Separated (but still legally married or still legally in a same-sex civil partnership)"
+# [7] "Divorced or formerly in a same-sex civil partnership which is now legally dissolved"   
+# [8] "Widowed or surviving partner from a same-sex civil partnership"  
+names(ms_2011) <- c("output_area", "total", "single", "married", 
+                    "civil_partner", "separated", "divorced", "widowed")
+
+
+# > ms_2001 %>% transmute(output_area, total, single = single + separated + divorced + widowed, married = married + remarried) %>% mutate(t2 = single + married, check = total == t2) %>% xtabs(~check, data = .)
+# check
+# TRUE 
+# 42604 
+
+ms_2001 <- ms_2001 %>% 
+transmute(output_area, total, 
+          single = single + separated + divorced + widowed, 
+          married = married + remarried)
+
+# > ms_2011 %>% transmute(output_area, total, single = single + separated + divorced + widowed, married = married + civil_partner) %>% mutate(t2 = single + married, check = t2 == total) %>% xtabs(~check, data = .)
+# check
+# TRUE 
+# 46351 
+
+ms_2011 <- ms_2011 %>% 
+transmute(output_area, total, 
+          single = single + separated + divorced + widowed, 
+          married = married + civil_partner) 
+
+write_csv(ms_2001, path = "output_data/oa_harmonised/marital_status_2001.csv")
+write_csv(ms_2011, path = "output_data/oa_harmonised/marital_status_2011.csv")
 
 
 # car ownership
