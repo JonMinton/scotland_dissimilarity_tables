@@ -977,3 +977,260 @@ write_csv(
 )
 
 
+
+# Linking tables ----------------------------------------------------------
+
+
+nrs_oa_link <- source_DropboxData(
+  file = "OUTPUT_AREA_2001_LOOKUP.csv",
+  key = "39wszvlpxy4qvpf"
+) %>% tbl_df
+
+nrs_oa_link <- nrs_oa_link %>% 
+  rename(oa_2001 = OutputArea2001Code, oa_nrs = NRSoldOutputArea2001Code)
+
+big_link <- source_DropboxData(
+  file =  "Census_2011_Lookup__OA_TO_HIGHER_AREAS.csv",
+  key =   "95x5ozuw0c6xgxk"
+) %>% tbl_df
+
+oa_dz_link <- big_link %>% 
+  select(
+    oa_2001 = OutputArea2001Code,
+    oa_2011 = OutputArea2011Code,
+    dz_2001 = Datazone2001Code, 
+    la_2011 = CouncilArea2011Code # this will allow links to specific cities later 
+  )
+
+
+la_2011_codes <- source_DropboxData(
+  file = "LAD_2012_UK_NC.csv",
+  key = "86em2kfrq0xxmpk"
+) %>% tbl_df
+
+la_2011_codes <- la_2011_codes %>% 
+  select(
+    la_2011 = LAD12CD, 
+    la_name = LAD12NM
+  )
+
+oa_dz_link <- oa_dz_link %>% inner_join(la_2011_codes)
+
+
+# general health - link 2001 oa to 2001 dz -------------------------------------------------
+
+gh_2001 <- read_csv("output_data/generalhealth_2001.csv")
+gh_2011 <- read_csv("output_data/generalhealth_2011.csv")
+# For 2001, need NRS to standard OA lookup, 
+# For both, need to divide into simple white/nonwhite
+
+gh_simple_2001 <- gh_2001 %>% 
+  select(
+    oa_nrs = output_area,
+    total = `ALL PEOPLE`,
+    not_good = `Not Good Health`
+  ) %>% 
+  select(oa_nrs, total, not_good)
+
+gh_simple_2011 <- gh_2011 %>% 
+  select(
+    oa_2011= output_area,
+    total = `All people`,
+    fair = `Fair health`,
+    bad = `Bad health`,
+    very_bad = `Very bad health`
+  )  %>%  
+  mutate(
+    not_good = fair + bad + very_bad
+  ) %>% 
+  select(
+    oa_2011, 
+    total,
+    not_good
+  )
+
+
+
+
+
+gh_simple_2001 <- gh_simple_2001 %>% 
+  inner_join(nrs_oa_link) %>% 
+  select(
+    oa_2001, 
+    total, 
+    not_good
+  )
+
+
+
+# Final form should be: 
+
+# dz_2001
+# la_name
+# year
+# total
+# not_good
+
+
+dz_simple_2001 <- gh_simple_2001 %>% 
+  inner_join(oa_dz_link) %>%
+  mutate(year = 2001) %>% 
+  select(
+    dz_2001, 
+    la_name,
+    year,
+    total,
+    not_good
+  ) %>% 
+  group_by(
+    dz_2001, 
+    la_name, 
+    year
+  ) %>%
+  summarise(
+    total = sum(total),
+    not_good = sum(not_good)
+  )
+
+
+
+dz_simple_2011 <- gh_simple_2011 %>% 
+  inner_join(oa_dz_link) %>% 
+  mutate(year = 2011) %>% 
+  select(
+    dz_2001, 
+    la_name,
+    year, 
+    total,
+    not_good
+  ) %>% 
+  group_by(
+    dz_2001,
+    la_name,
+    year
+  ) %>% 
+  summarise(
+    total = sum(total),
+    not_good = sum(not_good)
+  )
+
+
+dz_gh <-
+  dz_simple_2001 %>% 
+  bind_rows(dz_simple_2011)
+
+# Write this out and send to Gavin, Duncan & Jing
+
+write_csv(
+  dz_gh,
+  path = "output_data/generalhealth_datazones_2001_and_2011.csv"        
+)
+
+
+
+# LLTI at dz level
+
+# general health - link 2001 oa to 2001 dz -------------------------------------------------
+
+llti_2001 <- read_csv("output_data/llti_2001.csv")
+llti_2011 <- read_csv("output_data/llti_2011.csv")
+# For 2001, need NRS to standard OA lookup, 
+# For both, need to divide into simple white/nonwhite
+
+llti_simple_2001 <- llti_2001 %>% 
+  select(
+    oa_nrs = output_area,
+    total = `ALL PEOPLE`,
+    llti = `With a limiting long-term illness`
+  ) %>% 
+  select(oa_nrs, total, llti)
+
+llti_simple_2011 <- llti_2011 %>% 
+  select(
+    oa_2011= output_area,
+    total = `All people`,
+    llti_lot = `Day-to-day activities limited a lot`,
+    llti_little = `Day-to-day activities limited a little`
+  )  %>%  
+  mutate(
+    llti = llti_lot + llti_little
+  ) %>% 
+  select(
+    oa_2011, 
+    total,
+    llti
+  )
+
+
+
+llti_simple_2001 <- llti_simple_2001 %>% 
+  inner_join(nrs_oa_link) %>% 
+  select(
+    oa_2001, 
+    total, 
+    llti
+  )
+
+
+
+# Final form should be: 
+
+# dz_2001
+# la_name
+# year
+# total
+# llti
+
+
+dz_simple_2001 <- llti_simple_2001 %>% 
+  inner_join(oa_dz_link) %>%
+  mutate(year = 2001) %>% 
+  select(
+    dz_2001, 
+    la_name,
+    year,
+    total,
+    llti
+  ) %>% 
+  group_by(
+    dz_2001, 
+    la_name, 
+    year
+  ) %>%
+  summarise(
+    total = sum(total),
+    llti = sum(llti)
+  )
+
+
+
+dz_simple_2011 <- llti_simple_2011 %>% 
+  inner_join(oa_dz_link) %>% 
+  mutate(year = 2011) %>% 
+  select(
+    dz_2001, 
+    la_name,
+    year, 
+    total,
+    llti
+  ) %>% 
+  group_by(
+    dz_2001,
+    la_name,
+    year
+  ) %>% 
+  summarise(
+    total = sum(total),
+    llti = sum(llti)
+  )
+
+
+dz_llti <-
+  dz_simple_2001 %>% 
+  bind_rows(dz_simple_2011)
+
+write_csv(
+  dz_llti,
+  path = "output_data/llti_datazones_2001_and_2011.csv"        
+)
+
