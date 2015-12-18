@@ -250,12 +250,239 @@ final_link <- jing_link  %>% inner_join(nrs_oa_link) %>% inner_join(oa_dz_link)
 
 
 
+# Saving to nrs oa; 2001 dz; 2011 dz --------------------------------------
+
+
+# Accommodation tables
+
+accom_2001 <- read_csv("output_data/accommodationtype_2001.csv")
+accom_2011 <- read_csv("output_data/accommodationtype_2011.csv")
+
+
+# > names(accom_2001)
+# [1] "output_area"                                      
+#"ALL PEOPLE" [total]                                      
+# [3] "In an unshared dwelling"                          
+#"House or bungalow"  [house]                             
+# [5] "     Detached"                                    
+#"Semi-detached"                              
+# [7] "     Terraced (including end-terrace)"            
+#"  Flat, maisonette or apartment" [flat]                 
+# [9] "     In a purpose-built block of flats"           
+#"     Part of a converted or shared house"        
+# [11] "     In a commercial building"                    
+#"  Caravan or other mobile or temporary structure" [caravan]
+# [13] "In a shared dwelling"     [shared]
+
+# > names(accom_2011)
+# [1] "output_area"                                                                 
+# [2] "All people" [total]                                                                  
+# [3] "Unshared dwelling total"                                                     
+# [4] "Unshared dwelling: Whole house or bungalow" [house]                                  
+# [5] "Unshared dwelling: Whole house or bungalow: Detached"                        
+# [6] "Unshared dwelling: Whole house or bungalow: Semi-detached"                   
+# [7] "Unshared dwelling: Whole house or bungalow: Terraced (including end terrace)"
+# [8] "Unshared dwelling: Flat maisonette or apartment" [flat]                            
+# [9] "Unshared dwelling: Purpose-built block of flats or tenement"                 
+# [10] "Unshared dwelling: Part of a converted or shared house (including bed-sits)" 
+# [11] "Unshared dwelling: In a commercial building"                                 
+# [12] "Unshared dwelling: Caravan or other mobile or temporary structure" [caravan]           
+# [13] "Shared dwelling" [shared]            
+
+# going with: 
+# shared
+# flat
+# house
+# caravan
+
+names(accom_2001)[c(2, 4, 8, 12, 13)] <- c("total", "house", "flat", "caravan", "shared")
+
+accom_2001 <- accom_2001 %>% select(output_area, total, house, flat, caravan, shared)
+
+# Check these are mutually exclusive and exhaustive
+# > accom_2001  %>% mutate(t2 = house + flat + caravan + shared, check = total == t2)  %>% xtabs(~ check, data = .)
+# check
+# TRUE 
+# 42604 
+
+
+
+names(accom_2011)[c(2, 4, 8, 12, 13)] <- c("total", "house", "flat", "caravan", "shared")
+accom_2011 <- accom_2011 %>% select(output_area, total, house, flat, caravan, shared)
+
+# check these are mutually exclusive and exhaustive
+# > accom_2011 %>% mutate(t2 = house + flat + caravan + shared, check = total == t2) %>% xtabs( ~ check , data = .)
+# check
+# TRUE 
+# 46351 
+
+write_csv(accom_2001, path = "output_data/oa_harmonised/accom_2001.csv")
+write_csv(accom_2011, path = "output_data/oa_harmonised/accom_2011.csv")
+
 
 # car attribute tables ----------------------------------------------------
 
 
 car_2001 <- read_csv("output_data/carvanownership_2001.csv")
 car_2011 <- read_csv("output_data/carvanownership_2011.csv")
+
+
+names(car_2001) <- c("output_area", "total", "none", "one", "two", "three", "four", "totnumcar")
+
+# car_2001 %>% mutate(t2 = none + one + two + three + four, check = total == t2) %>% xtabs( ~ check, data = .)
+# > car_2001 %>% mutate(t2 = none + one + two + three + four, check = total == t2) %>% xtabs( ~ check, data = .)
+# check
+# TRUE 
+# 42604 
+
+car_2001 <- car_2001 %>% transmute(output_area = output_area, total = total, none = none, some = one + two + three + four)
+# Source: local data frame [42,604 x 4]
+# 
+# output_area total none some
+# 1   60QA000001    24    1   23
+# 2   60QA000002    64    1   63
+# 3   60QA000003    30    0   30
+# 4   60QA000004    22    0   22
+# 5   60QA000005    25    0   25
+# 6   60QA000006    41    6   35
+# 7   60QA000007    25    0   25
+# 8   60QA000008    36    0   36
+# 9   60QA000009    57    5   52
+# 10  60QA000010    28    3   25
+# ..         ...   ...  ...  ...
+
+names(car_2011) <- c("output_area", "total", "none" ,"one", "two", "three", "four", "numcar")
+
+# > car_2011 %>% mutate(t2 = none + one + two + three + four, check = total == t2) %>% xtabs(~ check, data = .)
+# check
+# TRUE 
+# 46351 
+
+write_csv(car_2001, path = "output_data/oa_harmonised/car_2001.csv")
+write_csv(car_2011, path = "output_data/oa_harmonised/car_2011.csv")
+
+
+
+# Country of birth
+
+
+cob_2001 <- read_csv("output_data/countryofbirth_2001.csv")
+cob_2011 <- read_csv("output_data/countryofbirth_2011.csv")
+
+# > names(cob_2001)
+# [1] "output_area"                                   "All people"                                   
+# [3] "Number of people born in: England"             "Number of people born in: Scotland"           
+# [5] "Number of people born in: Wales"               "Number of people born in: Northern Ireland"   
+# [7] "Number of people born in: Republic of Ireland" "Number of people born in: Other EU countries" 
+# [9] "Number of people born: Elsewhere"             
+
+# > names(cob_2011)
+# [1] "output_area"                                            "All people"                                            
+# [3] "England"                                                "Northern Ireland"                                      
+# [5] "Scotland"                                               "Wales"                                                 
+# [7] "Republic of Ireland"                                    "Other EU: Member countries in March 2001 (1)"          
+# [9] "Other EU: Accession countries April 2001 to March 2011" "Other countries"    
+
+
+names(cob_2001) <- c("output_area", "total", "england", "scotland", "wales", "nir", "repirl", "other_eu", "elsewhere")
+names(cob_2011) <- c("output_area", "total", "england", "nir", "scotland", "wales", "repirl", "other_eu_old", "other_eu_new", "elsewhere")
+
+cob_2001 <- cob_2001 %>% transmute(output_area, total, scotland, ruk = england + wales + nir, elsewhere = repirl + other_eu + elsewhere)
+
+# > cob_2001  %>% mutate(t2 = scotland + ruk + elsewhere, check = total == t2)  %>% xtabs(~ check, data = .)
+# check
+# TRUE 
+# 42604 
+
+cob_2011 <- cob_2011 %>% transmute(output_area, total, scotland, ruk = england + wales + nir, elsewhere = repirl + other_eu_old + other_eu_new + elsewhere)
+
+# > cob_2011  %>% mutate(t2 = scotland + ruk + elsewhere, check = total == t2)  %>% xtabs(~ check, data = .)
+# check
+# TRUE 
+# 46351 
+ 
+
+write_csv(cob_2001, path = "output_data/oa_harmonised/cob_2001.csv")
+write_csv(cob_2011, path = "output_data/oa_harmonised/cob_2011.csv")
+
+
+
+# economic activity
+
+ecact_2001 <- read_csv("output_data/economicactivity_2001.csv")
+ecact_2011 <- read_csv("output_data/economicactivity_2011.csv")
+
+
+# > names(ecact_2001)
+# [1] "output_area"                                                                  
+# [2] "All people aged 16 - 74"                                                      
+# [3] "Number of people aged 16 - 74 Economically active Employees Part-time"        
+# [4] "Number of people aged 16 - 74 Economically active Employees Full-time"        
+# [5] "Number of people aged 16 - 74 Economically active Self employed"              
+# [6] "Number of people aged 16 - 74 Economically active Unemployed"                 
+# [7] "Number of people aged 16 - 74 Economically active Full-time student"          
+# [8] "Number of people aged 16 - 74 Economically inactive Retired"                  
+# [9] "Number of people aged 16 - 74 Economically inactive Student"                  
+# [10] "Number of people aged 16 - 74 Economically inactive Looking after home/family"
+# [11] "Number of people aged 16 - 74 Economically inactive Permanently sick/disabled"
+# [12] "Number of people aged 16 - 74 Economically inactive Other"                    
+# [13] "Number of unemployed people aged 16-74: Aged 16-24 years"                     
+# [14] "Number of unemployed people aged 16-74: Aged 50 years and over"               
+# [15] "Number of unemployed people aged 16-74 who have never worked"                 
+# [16] "Number of unemployed people aged 16-74 who are long-term unemployed"          
+
+names(ecact_2001) <- c("output_area", "total", "ft", "pt", "se", "unemp", "ftstud", "retired", "student", "home", "sick", "other", "16_24", "50_plus", "never_worked", "ltunemp")
+
+ecact_2001 <- ecact_2001 %>% 
+  transmute(output_area, total, 
+            employed = ft + pt + se, 
+            unemployed = unemp, 
+            other = ftstud + retired + student + home + sick + other
+            )
+
+# > ecact_2001 %>% mutate(t2 = employed + unemployed + other, check = total == t2)  %>% xtabs(~check, data = .)
+# check
+# TRUE 
+# 42604
+
+
+#> names(ecact_2011)
+# [1] "output_area"                                           "All people aged 16 to 74"                             
+# [3] "Economically active: Employee: Part-time"              "Economically active: Employee: Full-time"             
+# [5] "Economically active: Self-employed"                    "Economically active: Unemployed"                      
+# [7] "Economically active: Full-time student"                "Economically inactive: Retired"                       
+# [9] "Economically inactive: Student"                        "Economically inactive: Looking after home or family"  
+# [11] "Economically inactive: Long-term sick or disabled"     "Economically inactive: Other"                         
+# [13] "Unemployed people aged 16 to 74: Aged 16 to 24"        "Unemployed people aged 16 to 74: Aged 50 to 74"       
+# [15] "Unemployed people aged 16 to 74: Never worked"         "Unemployed people aged 16 to 74: Long-term unemployed"
+
+names(ecact_2011) <- c("output_area", "total", "pt", "ft", "se", "unemp", "ftstud", "retired", "student", "home", "sick", "other", "young", "old", "neverworked","ltunemp")
+
+ecact_2011 <- ecact_2011 %>% 
+  transmute(output_area, total, 
+            employed = ft + pt + se, 
+            unemployed = unemp, 
+            other = ftstud + retired + student + home + sick + other
+  )
+# > ecact_2011 %>% 
+#   mutate(t2 = employed + unemployed + other, check = total == t2)  %>% xtabs(~check, data = .)
+# check
+# TRUE 
+# 46351 
+
+write_csv(ecact_2001, path = "output_data/oa_harmonised/ecact_2001.csv")
+write_csv(ecact_2011, path = "output_data/oa_harmonised/ecact_2011.csv")
+
+
+
+#############################################################################################
+#### START AGAIN HERE - ETHNICITY, INDUSTRY, LLTI, GENERAL HEALTH, MARITAL STATUS, NS-SEC, RELIGION, TENURE, HOUSEHOLD TYPE
+##############################################################################################
+
+
+
+# 
+
 
 
 # car ownership
