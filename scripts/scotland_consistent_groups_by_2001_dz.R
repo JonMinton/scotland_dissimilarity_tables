@@ -475,9 +475,6 @@ write_csv(ecact_2011, path = "output_data/oa_harmonised/ecact_2011.csv")
 
 
 
-#############################################################################################
-#### START AGAIN HERE - ETHNICITY, LLTI, GENERAL HEALTH, MARITAL STATUS, NS-SEC, RELIGION, TENURE, HOUSEHOLD TYPE
-##############################################################################################
 
 eth_2001 <- read_csv("output_data/ethnicity_2001.csv")
 eth_2011 <- read_csv("output_data/ethnicity_2011.csv")
@@ -689,6 +686,167 @@ transmute(output_area, total,
 
 write_csv(ms_2001, path = "output_data/oa_harmonised/marital_status_2001.csv")
 write_csv(ms_2011, path = "output_data/oa_harmonised/marital_status_2011.csv")
+
+
+#############################################################################################
+#### START AGAIN HERE - NS-SEC, RELIGION, TENURE, HOUSEHOLD TYPE
+##############################################################################################
+nssec_2001 <- read_csv("output_data/ns_sec_2001.csv")
+nssec_2011 <- read_csv("output_data/ns_sec_2011.csv")
+
+# names(nssec_2001)
+# names(nssec_2011)
+# 
+# > names(nssec_2001)
+# [1] "output_area"                                                                 
+# [2] "ALL PEOPLE AGED 16 - 74"                                                     
+# [3] "Number of people aged 16 - 74: Large employers and higher managers"          
+# [4] "Number of people aged 16 - 74: Higher professional occupations"              
+# [5] "Number of people aged 16 - 74: Lower managerial and professional occupations"
+# [6] "Number of people aged 16 - 74: Intermediate occupations"                     
+# [7] "Number of people aged 16 - 74: Small employers and own account workers"      
+# [8] "Number of people aged 16 - 74: Lower supervisory and technical occupations"  
+# [9] "Number of people aged 16 - 74: Semi-routine occupations"                     
+# [10] "Number of people aged 16 - 74: Routine occupations"                          
+# [11] "Number of people aged 16 - 74: Never worked"                                 
+# [12] "Number of people aged 16 - 74: Long-term unemployed"                         
+# [13] "Number of people aged 16 - 74: Full-time students"                           
+# [14] "Number of people aged 16 - 74: Not classifiable for other reasons"     
+names(nssec_2001) <- c(
+  "output_area", "total", "lrgemp", "higher_prof_occupations", "lower_managerial_prof", "intermed", 
+  "small_emp", "lower_sup", "semi_routine", "routine", "never_worked", "ltunemp", "ftstud", "other")
+
+# > names(nssec_2011)
+# [1] "output_area"                                                                                                             
+# [2] "All people aged 16 to 74"                                                                                                
+# [3] "1. Higher managerial, administrative and professional occupations: Total"                                                
+# [4] "1. Higher managerial, administrative and professional occupations: 1.1 Large employers and higher managerial occupations"
+# [5] "1. Higher managerial, administrative and professional occupations: 1.2 Higher professional occupations"                  
+# [6] "2. Lower managerial and professional occupations"                                                                        
+# [7] "3. Intermediate occupations"                                                                                             
+# [8] "4. Small employers and own account workers"                                                                              
+# [9] "5.  Lower supervisory and technical occupations"                                                                         
+# [10] "6. Semi-routine occupations"                                                                                             
+# [11] "7. Routine occupations"                                                                                                  
+# [12] "8. Never worked and long-term unemployed: Total"                                                                         
+# [13] "8. Never worked and long-term unemployed: L14.1 Never worked"                                                            
+# [14] "8. Never worked and long-term unemployed: L14.2 Long-term unemployed"                                                    
+# [15] "L15 Full-time students"   
+names(nssec_2011) <- c("output_area", "total", "higher_total", "higher_large", 
+                       "higher_professional", "lower_managerial", "intermed",
+                       "small_emp", "lower_supervis", "semi_routine", "routine", 
+                       "never_total", "never_never", "never_ltunemp", "ftstud")
+
+#groups 
+# higher managerial, admin and professional occupations
+# lower managerial
+# intermediate
+# small employers and own account
+# lower supervisory , semi routine and routine
+# students
+# never worked/long term unemployed
+
+nssec_2001 <- nssec_2001 %>% transmute(
+  output_area, total, 
+  higher_man = lrgemp + higher_prof_occupations,
+  lower_man = lower_managerial_prof,
+  intermed,
+  small_self = small_emp, 
+  routine = lower_sup + semi_routine + routine,
+  students = ftstud, 
+  other = ltunemp + never_worked + other
+                         ) 
+# check
+# TRUE 
+# 42604 
+
+nssec_2011 <- nssec_2011 %>% 
+  transmute(output_area, total, 
+          higher_man = higher_total, lower_man = lower_managerial, 
+          intermed, small_self = small_emp, 
+          routine = lower_supervis + semi_routine + routine, 
+          students = ftstud, other = never_total)
+
+# check
+# TRUE 
+# 46351 
+
+write_csv(nssec_2001, "output_data/oa_harmonised/nssec_2001.csv")
+write_csv(nssec_2011, "output_data/oa_harmonised/nssec_2011.csv")
+
+
+#####################################################################
+#  RELIGION, 
+
+rel_2001 <- read_csv("output_data/religion_2001.csv")
+rel_2011 <- read_csv("output_data/religion_2011.csv")
+
+names(rel_2001) <- c("output_area", "total", "cos", "rom_cath", "other_chris", "buddhist", "hindu", "jewish", "muslim", "sikh", "other_rel", "none", "not_answered")
+
+names(rel_2011) <- c("output_area", "total", "cos", "rom_cath", "other_chris", "buddhist", "hindu", "jewish", "muslim", "sikh", "other_rel", "none", "not_answered")
+
+
+rel_2001 <- rel_2001 %>% 
+transmute(output_area, total, 
+          non_catholic_christian = cos + other_chris, 
+          catholic_christian= rom_cath, jewish, muslim, 
+          none, other = buddhist + hindu + sikh + other_rel + not_answered) 
+
+# check
+# TRUE 
+# 42604 
+
+rel_2011 <- rel_2011 %>% 
+transmute(output_area, total, 
+          non_catholic_christian = cos + other_chris, 
+          catholic_christian= rom_cath, jewish, muslim, 
+          none, other = buddhist + hindu + sikh + other_rel + not_answered) 
+# check
+# TRUE 
+# 46351 
+
+write_csv(rel_2001, path = "output_data/oa_harmonised/religion_2001.csv")
+write_csv(rel_2011, path = "output_data/oa_harmonised/religion_2011.csv")
+
+################################
+#### TENURE, HOUSEHOLD TYPE
+
+tenure_2001 <- read_csv("output_data/tenure_2001.csv")
+tenure_2011 <- read_csv("output_data/tenure_2011.csv")
+
+# > names(tenure_2001)
+# [1] "output_area"                                           "ALL PEOPLE"                                           
+# [3] " Owned"                                                "Owns outright"                                        
+# [5] "Owns  with a mortgage or loan"                         "Shared ownership"                                     
+# [7] "Social rented"                                         "Rented from Council (Local Authority/Scottish Homes)" 
+# [9] "Other social rented"                                   "Private rented - furnished"                           
+# [11] "Private landlord or letting agency furnished"          "Employer of a household member furnished"             
+# [13] "Relative or friend of a household member furnished"    "Other furnished"                                      
+# [15] "Private rented - unfurnished"                          "Private landlord or letting agency unfurnished"       
+# [17] "Employer of a household memeber unfurnished"           "Relative or friend of a household memeber unfurnished"
+# [19] "Other unfurnished"                                     "Living rent free"         
+names(tenure_2001) <- c("output_area", "total", "owned", "owned_outright", "owned_mortgage", "owned_shared","social_social", "social_council",
+                        "social_other", "rented_furnished", "rented_landlord", "rented_employer", "rented_relative", "rented_other",
+                        "rented_unfurnished", "privrent_landlord_unfurnished", "privrent_household_unfurnished", "privrent_relative_unfurnished",
+                        "privrent_other_unfurnished", "rentfree"
+                        )
+
+
+# > names(tenure_2011)
+# [1] "output_area"                                              "All people in households"                                
+# [3] "Owned"                                                    "Owned: Owned outright"                                   
+# [5] "Owned: Owned with a mortgage or loan"                     "Owned: Shared ownership (part owned and part rented)"    
+# [7] "Social rented"                                            "Social rented: Rented from council (Local authority)"    
+# [9] "Social rented: Other social rented"                       "Private rented"                                          
+# [11] "Private rented: Private landlord or letting agency"       "Private rented: Employer of a household member"          
+# [13] "Private rented: Relative or friend of a household member" "Private rented: Other"                                   
+# [15] "Living rent free"                                        
+
+names(tenure_2011) <- c("output_area", "total", "owned", "owned_outright", "owned_mortgage", "owned_shared","social", "social_council",
+                        "social_other", "rented_furnished", "rented:, rented_landlord", "rented_employer", "rented_relative", "rented_other",
+                        "rentfree"
+)
+
 
 
 # car ownership
