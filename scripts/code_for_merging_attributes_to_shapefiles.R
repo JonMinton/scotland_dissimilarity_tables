@@ -8,9 +8,6 @@ rm(list = ls())
 require(spdep)
 require(maptools)
 require(rgdal)
-require(CARBayes)
-require(Rcpp)
-require(MASS)
 
 require(stringr)
 require(plyr)
@@ -18,21 +15,9 @@ require(tidyr)
 require(dplyr)
 
 
-require(grid)
-require(ggplot2)
-
-require(shiny)
 
 
-# Attribute data 
 
-attributes_table <- read.csv("output_data/ethnicity_4group_categories_datazones_2001_and_2011.csv")
-
-attributes_table_2001 <- attributes_table %>% filter(year == 2001)
-attributes_table_2001 <- attributes_table_2001[!duplicated(attributes_table_2001$dz_2001),]
-
-attributes_table_2011 <- attributes_table %>% filter(year == 2011)
-attributes_table_2011 <- attributes_table_2011[!duplicated(attributes_table_2011$dz_2001),]
 
 
 dz_2001_shp <- readOGR(
@@ -41,58 +26,213 @@ dz_2001_shp <- readOGR(
 )      
 
 
-dz_2001_shp_2001data <- dz_2001_shp 
-dz_2001_shp_2011data <- dz_2001_shp 
+# csv locations 
+dir("output_data/dz_2001/")
 
-dz_2001_shp_2001data@data <- dz_2001_shp_2001data@data %>% rename(dz_2001=zonecode)
-dz_2001_shp_2001data_merged <- merge(x = dz_2001_shp_2001data, y = attributes_table_2001, by.x = "dz_2001", by.y = "dz_2001", all.x = TRUE)
-
-
-dz_2001_shp_2011data@data <- dz_2001_shp_2011data@data %>% rename(dz_2001=zonecode)
-dz_2001_shp_2011data_merged <- merge(x = dz_2001_shp_2011data, y = attributes_table_2011, by.x = "dz_2001", by.y = "dz_2001", all.x = TRUE)
-
-
-writeOGR(dz_2001_shp_2001data_merged, dsn = "shapefiles_with_attributes", layer = "ethnicity_2001dzs_4cats_2001data", driver = "ESRI Shapefile")
-writeOGR(dz_2001_shp_2011data_merged, dsn = "shapefiles_with_attributes", layer = "ethnicity_2001dzs_4cats_2011data", driver = "ESRI Shapefile")
+att_files <- dir("output_data/dz_2001/")
 
 
 
-# Now the same but the two category versions
+fn <- function(x){
+  infile <- read_csv(paste0("output_data/dz_2001/", x))
+  
+  infile <- infile[!duplicated(infile),]
+  
+  shp_joined <- dz_2001_shp
+  
+  shp_joined@data <- merge(
+    x = dz_2001_shp@data, 
+    y= infile,
+    by.x = "zonecode",
+    by.y = "dz_2001",
+    all.x =TRUE
+  )
+  
+  outname <- x %>% str_replace("\\.csv$", "")
+  
+  writeOGR(shp_joined, dsn = "shapefiles_with_attributes", layer = outname,  driver = "ESRI Shapefile")
+  
+  
+  return(NULL)
+}
+
+
+l_ply(att_files, fn, .progress = "text")
 
 
 
-# Attribute data 
+# Code exploring GIDs and datazones from 2001 dz shapefile.
 
-attributes_table <- read.csv("output_data/ethnicity_datazones_2001_and_2011.csv")
-attributes_table <- attributes_table  %>% mutate(white = total - nonwhite)
-
-attributes_table_2001 <- attributes_table %>% filter(year == 2001)
-attributes_table_2001 <- attributes_table_2001[!duplicated(attributes_table_2001$dz_2001),]
-
-attributes_table_2011 <- attributes_table %>% filter(year == 2011)
-attributes_table_2011 <- attributes_table_2011[!duplicated(attributes_table_2011$dz_2001),]
+# There are more GIDs than datazones. I think this is because some datazones include more than 
+# one polygon. This would make sense for island areas in particular, as the minimum size of datazones 
+# means they are likely to include more than one non-contiguous polygon. 
 
 
-dz_2001_shp <- readOGR(
-  dsn = "shapefiles/scotland_2001_datazones",
-  layer = "scotland_dz_2001"                     
-)      
+# 
+# > require(spdep)
+# Loading required package: spdep
+# Loading required package: sp
+# Loading required package: Matrix
+# 
+# Attaching package: ‘Matrix’
+# 
+# The following object is masked from ‘package:tidyr’:
+#   
+#   expand
+# 
+# Warning message:
+#   package ‘spdep’ was built under R version 3.1.3 
+# > require(maptools)
+# Loading required package: maptools
+# Checking rgeos availability: TRUE
+# > require(rgdal)
+# Loading required package: rgdal
+# rgdal: version: 0.9-1, (SVN revision 518)
+# Geospatial Data Abstraction Library extensions to R successfully loaded
+# Loaded GDAL runtime: GDAL 1.11.1, released 2014/09/24
+# Path to GDAL shared files: \\cfsk18.campus.gla.ac.uk/SSD_Home_Data_X/jm383x/My Documents/R/win-library/3.1/rgdal/gdal
+# GDAL does not use iconv for recoding strings.
+# Loaded PROJ.4 runtime: Rel. 4.8.0, 6 March 2012, [PJ_VERSION: 480]
+# Path to PROJ.4 shared files: \\cfsk18.campus.gla.ac.uk/SSD_Home_Data_X/jm383x/My Documents/R/win-library/3.1/rgdal/proj
+# > 
+#   > require(stringr)
+# > require(plyr)
+# > require(tidyr)
+# > require(dplyr)
+# > dz_2001_shp <- readOGR(
+#   +   dsn = "shapefiles/scotland_2001_datazones",
+#   +   layer = "scotland_dz_2001"                     
+#   + )
+# OGR data source with driver: ESRI Shapefile 
+# Source: "shapefiles/scotland_2001_datazones", layer: "scotland_dz_2001"
+# with 6610 features and 5 fields
+# Feature type: wkbPolygon with 2 dimensions
+# > tmp <- dz_2001_shp
+# > tmp <- tmp  %>% tbl_df
+# Error: data is not a data frame
+# > tmp <- dz_2001_shp@data
+# > tmp <- tmp  %>% tbl_df
+# > tmp
+# Source: local data frame [6,610 x 5]
+# 
+# gid  zonecode ons_code       label name
+# 1    1 S01006490       RH 31S01006490   NA
+# 2    2 S01006505       RH 31S01006505   NA
+# 3    3 S01006499       RH 31S01006499   NA
+# 4    4 S01006494       RH 31S01006494   NA
+# 5    5 S01006397       RH 31S01006397   NA
+# 6    6 S01006456       RH 31S01006456   NA
+# 7    7 S01006422       RH 31S01006422   NA
+# 8    8 S01006418       RH 31S01006418   NA
+# 9    9 S01006429       RH 31S01006429   NA
+# 10  10 S01006419       RH 31S01006419   NA
+# .. ...       ...      ...         ...  ...
+# > length(unique(tmp$zonecode))
+# [1] 6505
+# > View(tmp)
+# > tmp  %>% arrange(zonecode)
+# Source: local data frame [6,610 x 5]
+# 
+# gid  zonecode ons_code       label name
+# 1  6089 S01000001       QA 01S01000001   NA
+# 2  6090 S01000002       QA 01S01000002   NA
+# 3  6091 S01000003       QA 01S01000003   NA
+# 4  6092 S01000004       QA 01S01000004   NA
+# 5  6093 S01000005       QA 01S01000005   NA
+# 6  6094 S01000006       QA 01S01000006   NA
+# 7  6095 S01000007       QA 01S01000007   NA
+# 8  6096 S01000008       QA 01S01000008   NA
+# 9  6097 S01000009       QA 01S01000009   NA
+# 10 6098 S01000010       QA 01S01000010   NA
+# ..  ...       ...      ...         ...  ...
+# > tmp  %>% arrange(zonecode)  %>% mutate(x = NA, x = lag(zonecode))
+# Source: local data frame [6,610 x 6]
+# 
+# gid  zonecode ons_code       label name  x
+# 1  6089 S01000001       QA 01S01000001   NA NA
+# 2  6090 S01000002       QA 01S01000002   NA  1
+# 3  6091 S01000003       QA 01S01000003   NA  2
+# 4  6092 S01000004       QA 01S01000004   NA  3
+# 5  6093 S01000005       QA 01S01000005   NA  4
+# 6  6094 S01000006       QA 01S01000006   NA  5
+# 7  6095 S01000007       QA 01S01000007   NA  6
+# 8  6096 S01000008       QA 01S01000008   NA  7
+# 9  6097 S01000009       QA 01S01000009   NA  8
+# 10 6098 S01000010       QA 01S01000010   NA  9
+# ..  ...       ...      ...         ...  ... ..
+# > tmp  %>% arrange(zonecode)  %>% mutate(x = lag(zonecode))
+# Source: local data frame [6,610 x 6]
+# 
+# gid  zonecode ons_code       label name  x
+# 1  6089 S01000001       QA 01S01000001   NA NA
+# 2  6090 S01000002       QA 01S01000002   NA  1
+# 3  6091 S01000003       QA 01S01000003   NA  2
+# 4  6092 S01000004       QA 01S01000004   NA  3
+# 5  6093 S01000005       QA 01S01000005   NA  4
+# 6  6094 S01000006       QA 01S01000006   NA  5
+# 7  6095 S01000007       QA 01S01000007   NA  6
+# 8  6096 S01000008       QA 01S01000008   NA  7
+# 9  6097 S01000009       QA 01S01000009   NA  8
+# 10 6098 S01000010       QA 01S01000010   NA  9
+# ..  ...       ...      ...         ...  ... ..
+# > ?lag
+# > ?dplyr::lag.default
+# > lapply(tmp, class)
+# $gid
+# [1] "integer"
+# 
+# $zonecode
+# [1] "factor"
+# 
+# $ons_code
+# [1] "factor"
+# 
+# $label
+# [1] "factor"
+# 
+# $name
+# [1] "factor"
+# 
+
+# > tmp  %>% arrange(zonecode)  %>% mutate_each(funs(as.character), -gid)  %>% 
+# mutate(x = lag(zonecode), y = x == zonecode)
+# Source: local data frame [6,610 x 7]
+# 
+# gid  zonecode ons_code       label name         x     y
+# 1  6089 S01000001       QA 01S01000001   NA        NA    NA
+# 2  6090 S01000002       QA 01S01000002   NA S01000001 FALSE
+# 3  6091 S01000003       QA 01S01000003   NA S01000002 FALSE
+# 4  6092 S01000004       QA 01S01000004   NA S01000003 FALSE
+# 5  6093 S01000005       QA 01S01000005   NA S01000004 FALSE
+# 6  6094 S01000006       QA 01S01000006   NA S01000005 FALSE
+# 7  6095 S01000007       QA 01S01000007   NA S01000006 FALSE
+# 8  6096 S01000008       QA 01S01000008   NA S01000007 FALSE
+# 9  6097 S01000009       QA 01S01000009   NA S01000008 FALSE
+# 10 6098 S01000010       QA 01S01000010   NA S01000009 FALSE
+# ..  ...       ...      ...         ...  ...       ...   ...
+
+# > tmp  %>% arrange(zonecode)  %>% mutate_each(funs(as.character), -gid)  %>% mutate(x = lag(zonecode), y = x == zonecode)   %>% xtabs( ~ y, data = .)
+# y
+# FALSE  TRUE 
+# 6504   105 
 
 
-dz_2001_shp_2001data <- dz_2001_shp 
-dz_2001_shp_2011data <- dz_2001_shp 
-
-dz_2001_shp_2001data@data <- dz_2001_shp_2001data@data %>% rename(dz_2001=zonecode)
-dz_2001_shp_2001data_merged <- merge(x = dz_2001_shp_2001data, y = attributes_table_2001, by.x = "dz_2001", by.y = "dz_2001", all.x = TRUE)
-
-
-dz_2001_shp_2011data@data <- dz_2001_shp_2011data@data %>% rename(dz_2001=zonecode)
-dz_2001_shp_2011data_merged <- merge(x = dz_2001_shp_2011data, y = attributes_table_2011, by.x = "dz_2001", by.y = "dz_2001", all.x = TRUE)
-
-
-writeOGR(dz_2001_shp_2001data_merged, dsn = "shapefiles_with_attributes", layer = "ethnicity_2001dzs_2cats_2001data", driver = "ESRI Shapefile")
-writeOGR(dz_2001_shp_2011data_merged, dsn = "shapefiles_with_attributes", layer = "ethnicity_2001dzs_2cats_2011data", driver = "ESRI Shapefile")
-
-
-
+# > tmp  %>% arrange(zonecode)  %>% 
+# mutate_each(funs(as.character), -gid)  %>% 
+#   mutate(x = lag(zonecode), y = x == zonecode)  %>% 
+#   filter(y==T)
+# Source: local data frame [105 x 7]
+# 
+# gid  zonecode ons_code       label name         x    y
+# 1  6610 S01000105       QA 01S01000105   NA S01000105 TRUE
+# 2  6604 S01000481       QB 02S01000481   NA S01000481 TRUE
+# 3  6576 S01000711       QD 04S01000711   NA S01000711 TRUE
+# 4  6577 S01000711       QD 04S01000711   NA S01000711 TRUE
+# 5  6574 S01000721       QD 04S01000721   NA S01000721 TRUE
+# 6  6570 S01000755       QD 04S01000755   NA S01000755 TRUE
+# 7  6571 S01000755       QD 04S01000755   NA S01000755 TRUE
+# 8  6572 S01000755       QD 04S01000755   NA S01000755 TRUE
+# 9  6568 S01000763       QD 04S01000763   NA S01000763 TRUE
+# 10 6564 S01000796       QD 04S01000796   NA S01000796 TRUE
+# ..  ...       ...      ...         ...  ...       ...  ...
 
