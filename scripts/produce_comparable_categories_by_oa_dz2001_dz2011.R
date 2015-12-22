@@ -1077,9 +1077,15 @@ fn <- function(x){
   nms <- names(infile)
   nms <- nms[nms != "output_area"]
   
-  outfile <- infile %>% 
+  outfile <- infile  %>% 
     inner_join(od11, by = c("output_area" = "oa_nrs"))  %>% 
-    .[c("dz_2011", nms)]
+    distinct  %>% 
+    .[c("dz_2011", nms)]  %>% 
+    mutate(dz_2011 = str_trim(dz_2011)) %>% 
+    arrange(dz_2011)  %>% 
+    filter(dz_2011 != "")  %>% 
+    group_by(dz_2011)  %>% 
+    summarise_each( funs(sum))
   
   write_csv(outfile, path = paste0("output_data/dz_2011/", x))
   return(NULL)
@@ -1101,9 +1107,15 @@ fn <- function(x){
   nms <- names(infile)
   nms <- nms[nms != "output_area"]
   
-  outfile <- infile %>% 
+  outfile <- infile  %>% 
     inner_join(od11, by = c("output_area" = "oa_2011"))  %>% 
-    .[c("dz_2011", nms)]
+    distinct  %>% 
+    .[c("dz_2011", nms)]  %>% 
+    mutate(dz_2011 = str_trim(dz_2011)) %>% 
+    arrange(dz_2011)  %>% 
+    filter(dz_2011 != "")  %>% 
+    group_by(dz_2011)  %>% 
+    summarise_each( funs(sum))
   
   write_csv(outfile, path = paste0("output_data/dz_2011/", x))
   return(NULL)
@@ -1126,9 +1138,15 @@ fn <- function(x){
   nms <- names(infile)
   nms <- nms[nms != "output_area"]
   
-  outfile <- infile %>% 
+  outfile <- infile  %>% 
     inner_join(od11, by = c("output_area" = "oa_nrs"))  %>% 
-    .[c("dz_2001", nms)]
+    distinct  %>% 
+    .[c("dz_2001", nms)]  %>% 
+    mutate(dz_2001 = str_trim(dz_2001)) %>% 
+    arrange(dz_2001)  %>% 
+    filter(dz_2001 != "")  %>% 
+    group_by(dz_2001)  %>% 
+    summarise_each( funs(sum))
   
   write_csv(outfile, path = paste0("output_data/dz_2001/", x))
   return(NULL)
@@ -1150,9 +1168,15 @@ fn <- function(x){
   nms <- names(infile)
   nms <- nms[nms != "output_area"]
   
-  outfile <- infile %>% 
+  outfile <- infile  %>% 
     inner_join(od11, by = c("output_area" = "oa_2011"))  %>% 
-    .[c("dz_2001", nms)]
+    distinct  %>% 
+    .[c("dz_2001", nms)]  %>% 
+    mutate(dz_2001 = str_trim(dz_2001)) %>% 
+    arrange(dz_2001)  %>% 
+    filter(dz_2001 != "")  %>% 
+    group_by(dz_2001)  %>% 
+    summarise_each( funs(sum))
   
   write_csv(outfile, path = paste0("output_data/dz_2001/", x))
   return(NULL)
