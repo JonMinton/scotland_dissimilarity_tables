@@ -255,8 +255,8 @@ final_link <- jing_link  %>% inner_join(nrs_oa_link) %>% inner_join(oa_dz_link)
 
 # Accommodation tables
 
-accom_2001 <- read_csv("output_data/accommodationtype_2001.csv")
-accom_2011 <- read_csv("output_data/accommodationtype_2011.csv")
+accom_2001 <- read_csv("output_data/unharmonised/accommodationtype_2001.csv")
+accom_2011 <- read_csv("output_data/unharmonised/accommodationtype_2011.csv")
 
 
 # > names(accom_2001)
@@ -323,8 +323,8 @@ write_csv(accom_2011, path = "output_data/oa_harmonised/accom_2011.csv")
 # car attribute tables ----------------------------------------------------
 
 
-car_2001 <- read_csv("output_data/carvanownership_2001.csv")
-car_2011 <- read_csv("output_data/carvanownership_2011.csv")
+car_2001 <- read_csv("output_data/unharmonised/carvanownership_2001.csv")
+car_2011 <- read_csv("output_data/unharmonised/carvanownership_2011.csv")
 
 
 names(car_2001) <- c("output_area", "total", "none", "one", "two", "three", "four", "totnumcar")
@@ -366,8 +366,8 @@ write_csv(car_2011, path = "output_data/oa_harmonised/car_2011.csv")
 # Country of birth
 
 
-cob_2001 <- read_csv("output_data/countryofbirth_2001.csv")
-cob_2011 <- read_csv("output_data/countryofbirth_2011.csv")
+cob_2001 <- read_csv("output_data/unharmonised/countryofbirth_2001.csv")
+cob_2011 <- read_csv("output_data/unharmonised/countryofbirth_2011.csv")
 
 # > names(cob_2001)
 # [1] "output_area"                                   "All people"                                   
@@ -409,8 +409,8 @@ write_csv(cob_2011, path = "output_data/oa_harmonised/cob_2011.csv")
 
 # economic activity
 
-ecact_2001 <- read_csv("output_data/economicactivity_2001.csv")
-ecact_2011 <- read_csv("output_data/economicactivity_2011.csv")
+ecact_2001 <- read_csv("output_data/unharmonised/economicactivity_2001.csv")
+ecact_2011 <- read_csv("output_data/unharmonised/economicactivity_2011.csv")
 
 
 # > names(ecact_2001)
@@ -479,8 +479,8 @@ write_csv(ecact_2011, path = "output_data/oa_harmonised/ecact_2011.csv")
 
 
 
-eth_2001 <- read_csv("output_data/ethnicity_2001.csv")
-eth_2011 <- read_csv("output_data/ethnicity_2011.csv")
+eth_2001 <- read_csv("output_data/unharmonised/ethnicity_2001.csv")
+eth_2011 <- read_csv("output_data/unharmonised/ethnicity_2011.csv")
 
 # > names(eth_2001)
 # [1] "output_area"                                                                                                    
@@ -590,8 +590,8 @@ write_csv(eth_2011, path = "output_data/oa_harmonised/eth_2011.csv")
 
 #LLTI
 
-llti_2001 <- read_csv("output_data/llti_2001.csv")
-llti_2011 <- read_csv("output_data/llti_2011.csv")
+llti_2001 <- read_csv("output_data/unharmonised/llti_2001.csv")
+llti_2011 <- read_csv("output_data/unharmonised/llti_2011.csv")
 
 names(llti_2001) <- c("output_area", "total", "with_llti", "without_llti")
 names(llti_2011) <- c("output_area", "total", "lot", "little", "not")
@@ -612,8 +612,8 @@ write_csv(llti_2011, path = "output_data/oa_harmonised/llti_2011.csv")
 
 ##### General health
 
-gh_2001 <- read_csv("output_data/generalhealth_2001.csv")
-gh_2011 <- read_csv("output_data/generalhealth_2011.csv")
+gh_2001 <- read_csv("output_data/unharmonised/generalhealth_2001.csv")
+gh_2011 <- read_csv("output_data/unharmonised/generalhealth_2011.csv")
 
 names(gh_2001) <- c("output_area", "total", "good", "fairly_good", "not_good")
 names(gh_2011) <- c("output_area", "total", "very_good", "good", "fair", "bad", "very_bad")
@@ -637,8 +637,8 @@ write_csv(gh_2011, path = "output_data/oa_harmonised/general_health_2011.csv")
 
 # Marital status
 
-ms_2001 <- read_csv("output_data/maritalstatus_2001.csv")
-ms_2011 <- read_csv("output_data/maritalstatus_2011.csv")
+ms_2001 <- read_csv("output_data/unharmonised/maritalstatus_2001.csv")
+ms_2011 <- read_csv("output_data/unharmonised/maritalstatus_2011.csv")
 
 names(ms_2001)
 names(ms_2011)
@@ -695,8 +695,8 @@ write_csv(ms_2011, path = "output_data/oa_harmonised/marital_status_2011.csv")
 # ns - sec ----------------------------------------------------------------
 
 
-nssec_2001 <- read_csv("output_data/ns_sec_2001.csv")
-nssec_2011 <- read_csv("output_data/ns_sec_2011.csv")
+nssec_2001 <- read_csv("output_data/unharmonised/ns_sec_2001.csv")
+nssec_2011 <- read_csv("output_data/unharmonised/ns_sec_2011.csv")
 
 # names(nssec_2001)
 # names(nssec_2011)
@@ -783,8 +783,8 @@ write_csv(nssec_2011, "output_data/oa_harmonised/nssec_2011.csv")
 # religion
 
 
-rel_2001 <- read_csv("output_data/religion_2001.csv")
-rel_2011 <- read_csv("output_data/religion_2011.csv")
+rel_2001 <- read_csv("output_data/unharmonised/religion_2001.csv")
+rel_2011 <- read_csv("output_data/unharmonised/religion_2011.csv")
 
 names(rel_2001) <- c("output_area", "total", "cos", "rom_cath", "other_chris", "buddhist", "hindu", "jewish", "muslim", "sikh", "other_rel", "none", "not_answered")
 
@@ -816,8 +816,8 @@ write_csv(rel_2011, path = "output_data/oa_harmonised/religion_2011.csv")
 ################################
 #### TENURE, HOUSEHOLD TYPE
 
-tenure_2001 <- read_csv("output_data/tenure_2001.csv")
-tenure_2011 <- read_csv("output_data/tenure_2011.csv")
+tenure_2001 <- read_csv("output_data/unharmonised/tenure_2001.csv")
+tenure_2011 <- read_csv("output_data/unharmonised/tenure_2011.csv")
 
 # > names(tenure_2001)
 # [1] "output_area"                                           "ALL PEOPLE"                                           
@@ -932,8 +932,8 @@ write_csv(tenure_2011, path = "output_data/oa_harmonised/tenure_2011.csv")
 
 # Household type ----------------------------------------------------------
 
-hh_2001 <- read_csv("output_data/households_2001.csv")
-hh_2011 <- read_csv("output_data/households_2011.csv")
+hh_2001 <- read_csv("output_data/unharmonised/households_2001.csv")
+hh_2011 <- read_csv("output_data/unharmonised/households_2011.csv")
 
 # > names(hh_2001)
 # [1] "output_area"                                                                                                      
