@@ -587,6 +587,17 @@ write_csv(eth_2001, path = "output_data/oa_harmonised/eth_2001.csv")
 write_csv(eth_2011, path = "output_data/oa_harmonised/eth_2011.csv")
 
 
+eth_2001_2cat <- eth_2001 %>% 
+  transmute(output_area, total, white = white, nonwhite = total - white)
+
+eth_2011_2cat <- eth_2011 %>% 
+  transmute(output_area, total, white, nonwhite = total - white)
+
+write_csv(eth_2001_2cat, path = "output_data/oa_harmonised/eth_2001_2cat.csv")
+write_csv(eth_2011_2cat, path = "output_data/oa_harmonised/eth_2011_2cat.csv")
+
+
+
 
 #LLTI
 
