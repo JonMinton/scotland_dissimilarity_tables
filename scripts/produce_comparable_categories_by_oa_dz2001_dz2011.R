@@ -1077,8 +1077,9 @@ write_csv(hh_2011_spo, path = "output_data/oa_harmonised/studentspensionersother
 # A slightly different process is needed for 2001 oas than for 2011 oas
 
 # 2001 files 
-oa_2001 <- dir("output_data/oa_harmonised/", pattern = "_2001.csv$")
-oa_2011 <- dir("output_data/oa_harmonised/", pattern = "_2011.csv$")
+oa_2001 <- dir("output_data/oa_harmonised/", pattern = "_2001.csv$|_2001_2cat.csv$")
+oa_2011 <- dir("output_data/oa_harmonised/", pattern = "_2011.csv$|_2011_2cat.csv$")
+
 
 
 # first for 2001 tables 
@@ -1107,7 +1108,7 @@ fn <- function(x){
   return(NULL)
 }
 
-l_ply(oa_2001, fn)
+l_ply(oa_2001, fn, .progress = "text")
 
 
 # now for 2011 tables 
@@ -1137,7 +1138,7 @@ fn <- function(x){
   return(NULL)
 }
 
-l_ply(oa_2011, fn)
+l_ply(oa_2011, fn, .progress = "text")
 
 
 # Now, for completeness, to do the same with 2001 dzs
@@ -1168,7 +1169,7 @@ fn <- function(x){
   return(NULL)
 }
 
-l_ply(oa_2001, fn)
+l_ply(oa_2001, fn, .progress = "text")
 
 
 # now for 2011 tables 
@@ -1198,7 +1199,7 @@ fn <- function(x){
   return(NULL)
 }
 
-l_ply(oa_2011, fn)
+l_ply(oa_2011, fn, .progress = "text")
 
 
 
