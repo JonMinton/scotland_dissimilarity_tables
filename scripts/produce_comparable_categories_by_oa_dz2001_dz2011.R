@@ -475,6 +475,9 @@ write_csv(ecact_2011, path = "output_data/oa_harmonised/ecact_2011.csv")
 
 
 
+# ethnicity ---------------------------------------------------------------
+
+
 
 eth_2001 <- read_csv("output_data/ethnicity_2001.csv")
 eth_2011 <- read_csv("output_data/ethnicity_2011.csv")
@@ -688,9 +691,10 @@ write_csv(ms_2001, path = "output_data/oa_harmonised/marital_status_2001.csv")
 write_csv(ms_2011, path = "output_data/oa_harmonised/marital_status_2011.csv")
 
 
-#############################################################################################
-#### START AGAIN HERE - NS-SEC, RELIGION, TENURE, HOUSEHOLD TYPE
-##############################################################################################
+
+# ns - sec ----------------------------------------------------------------
+
+
 nssec_2001 <- read_csv("output_data/ns_sec_2001.csv")
 nssec_2011 <- read_csv("output_data/ns_sec_2011.csv")
 
@@ -776,7 +780,8 @@ write_csv(nssec_2011, "output_data/oa_harmonised/nssec_2011.csv")
 
 
 #####################################################################
-#  RELIGION, 
+# religion
+
 
 rel_2001 <- read_csv("output_data/religion_2001.csv")
 rel_2011 <- read_csv("output_data/religion_2011.csv")
