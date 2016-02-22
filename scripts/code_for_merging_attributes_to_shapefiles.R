@@ -60,6 +60,49 @@ fn <- function(x){
 l_ply(att_files, fn, .progress = "text")
 
 
+# do this for binary (two mutually exclusive category) versions of this 
+
+
+
+
+dz_2001_shp <- readOGR(
+  dsn = "shapefiles/scotland_2001_datazones",
+  layer = "scotland_dz_2001"                     
+)      
+
+
+# csv locations 
+dir("output_data/dz_2001/binary/")
+
+att_files <- dir("output_data/dz_2001/binary")
+
+
+
+fn <- function(x){
+  infile <- read_csv(paste0("output_data/dz_2001/binary/", x))
+  
+  infile <- infile[!duplicated(infile),]
+  
+  shp_joined <- dz_2001_shp
+  
+  shp_joined@data <- merge(
+    x = dz_2001_shp@data, 
+    y= infile,
+    by.x = "zonecode",
+    by.y = "dz_2001",
+    all.x =TRUE
+  )
+  
+  outname <- x %>% str_replace("\\.csv$", "")
+  
+  writeOGR(shp_joined, dsn = "shapefiles_with_attributes/2grp_2001", layer = outname,  driver = "ESRI Shapefile")
+  
+  
+  return(NULL)
+}
+
+
+l_ply(att_files, fn, .progress = "text")
 
 # Code exploring GIDs and datazones from 2001 dz shapefile.
 
