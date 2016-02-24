@@ -72,7 +72,7 @@ dta %>%
   labs(x = "Segregation type", y = "Segregation value") + 
   scale_fill_brewer(palette = "Blues") + theme(panel.background = element_rect(fill = "darkgrey"))
 
-
+ggsave("figures/segregation.png", height = 20, width = 20, units = "cm", dpi = 300)
 
 # Now different Atkins thresholds
 
@@ -107,6 +107,8 @@ dta %>%
   facet_wrap( ~ table) + 
   labs(x = "Atkins threshold", y = "Atkins value") + 
   scale_fill_brewer(palette = "Blues") + theme(panel.background = element_rect(fill = "darkgrey"))
+
+ggsave("figures/atkins.png", height = 20, width = 20, units = "cm", dpi = 300)
 
 
 # Some basic versions of core indices
@@ -154,3 +156,5 @@ dta %>%
   labs(x = "Index type", y = "Index value") + 
   scale_fill_brewer(palette = "Blues") + theme(panel.background = element_rect(fill = "darkgrey"))
 
+
+ggsave("figures/core_segregation_indices.png", height = 20, width = 25, units = "cm", dpi = 300)
