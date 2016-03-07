@@ -111,6 +111,73 @@ l_ply(att_files, fn, .progress = "text")
 # means they are likely to include more than one non-contiguous polygon. 
 
 
+
+# produce separate shapfiles for separate TTWAs ---------------------------
+
+ttwas <- c("Aberdeen", "Glasgow", "Edinburgh", "Dundee")
+
+att_files <- dir("output_data/dz_2001/binary")
+combinations <- expand.grid(attributes = att_files, ttwa = ttwas)
+
+# so, the aim is to produce smaller joins for each ttwa, and to label each year/attribute/ttwa shapefile appropriately
+ttwa <- read_csv(file = "input_data/lookups/LSOA01_TTWA01_UK_LU.csv", col_types = "ccccccc")
+
+
+fn <- function(x){
+  # x now contains 
+  # x$attributes 
+  # x$ttwa 
+  infile <- read_csv(paste0("output_data/dz_2001/binary/", x$attributes))
+  infile <- infile[!duplicated(infile),]
+
+  dzs_in_selection <- ttwa %>% filter(TTWA01NM == x$ttwa) %>% .$LSOA01CD %>% unique
+
+  shp_joined <- dz_2001_shp
+  
+  shp_joined <- shp_joined[shp_joined$zonecode %in% dzs_in_selection,]
+  
+
+  outname <- paste0(x$ttwa, "_", str_replace(x$attributes, "\\.csv$", ""))
+  plot(shp_joined, main = outname)
+
+  writeOGR(shp_joined, dsn = "shapefiles_with_attributes/2grp_2001/ttwa", layer = outname,  driver = "ESRI Shapefile")
+  
+  
+  return(NULL)
+}
+
+
+a_ply(combinations, 1, fn, .progress = "text")
+
+
+# This seems to have worked programmatically, but the TTWA areas are non-contiguous and so look like they aren't correct
+
+# to check this more carefully I'm now going to plot the shapefiles, highlighting particular ttwas
+
+
+plot(dz_2001_shp)
+
+
+
+
+shp_joined <- dz_2001_shp
+
+# Rather than try to merge, instead try to filter 
+
+
+
+plot(shp_joined)
+
+these_dzs <- ttwa  %>% filter(TTWA01NM == "Aberdeen")  %>% .$LSOA01CD  %>% unique
+sel <- shp_joined$zonecode %in% these_dzs
+plot(shp_joined[sel,], col = "red", add =T)
+
+these_dzs <- ttwa  %>% filter(TTWA01NM == "Glasgow")  %>% .$LSOA01CD  %>% unique
+sel <- shp_joined$zonecode %in% these_dzs
+plot(shp_joined[sel,], col = "blue", add =T)
+
+
+
 # 
 # > require(spdep)
 # Loading required package: spdep
