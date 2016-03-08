@@ -16,50 +16,39 @@ require(tidyr)
 require(dplyr)
 
 
+# Using a join-attribute table function from the following link
 
+#http://permalink.gmane.org/gmane.comp.lang.r.geo/20914#
 
-dz_2001_shp <- readOGR(
-  dsn = "shapefiles/scotland_2001_datazones",
-  layer = "scotland_dz_2001"                     
-)      
-
-
-# csv locations 
-dir("output_data/dz_2001/")
-
-att_files <- dir("output_data/dz_2001/")
-
-
-
-fn <- function(x){
-  infile <- read_csv(paste0("output_data/dz_2001/", x))
+join_attribute_table <- function(x, y, xcol, ycol) {
+  # Merges data frame to SpatialPolygonsDataFrame, keeping the correct
+  # order. Code from suggestions at:
+  # https://stat.ethz.ch/pipermail/r-sig-geo/2008-January/003064.html
+  # Args:
+  #   x: SpatialPolygonsDataFrame
+  #   y: Name of data.frame to merge
+  #   xcol: Merge column name
+  #   ycol: Merge column name
+  # Returns: Shapefile with merged attribute table
   
-  infile <- infile[!duplicated(infile),]
+  x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing
+  #original row order for later sorting
   
-  shp_joined <- dz_2001_shp
-  
-  shp_joined@data <- merge(
-    x = dz_2001_shp@data, 
-    y= infile,
-    by.x = "zonecode",
-    by.y = "dz_2001",
-    all.x =TRUE
-  )
-  
-  outname <- x %>% str_replace("\\.csv$", "")
-  
-  writeOGR(shp_joined, dsn = "shapefiles_with_attributes", layer = outname,  driver = "ESRI Shapefile")
-  
-  
-  return(NULL)
+  x.dat <- as(x, "data.frame")  # Create new data.frame object
+  x.dat2 <- merge(x.dat, y, by.x = xcol, by.y = ycol)  # Merge
+  x.dat2.ord <- x.dat2[order(x.dat2$sort_id), ]  # Reorder back to original
+  x2 <- x[x$sort_id %in% x.dat2$sort_id, ]  # Make new set of
+  #polygons, dropping those which aren't in merge
+  x2.dat <- as(x2, "data.frame")  # Make update x2 into a data.frame
+  row.names(x.dat2.ord) <- row.names(x2.dat)  # Reassign row.names
+  # from original data.frame
+  x2@data <- x.dat2.ord  # Assign to shapefile the new data.frame
+  return(x2)
 }
 
 
-l_ply(att_files, fn, .progress = "text")
 
-
-# do this for binary (two mutually exclusive category) versions of this 
-
+# two group versions; whole of Scotland -----------------------------------
 
 
 
@@ -83,13 +72,10 @@ fn <- function(x){
   
   shp_joined <- dz_2001_shp
   
-  shp_joined@data <- merge(
-    x = dz_2001_shp@data, 
-    y= infile,
-    by.x = "zonecode",
-    by.y = "dz_2001",
-    all.x =TRUE
-  )
+  shp_joined <- join_attribute_table(dz_2001_shp, infile, "zonecode", "dz_2001")
+  
+  
+  
   
   outname <- x %>% str_replace("\\.csv$", "")
   
@@ -152,35 +138,6 @@ ttwa_centroids <- c(
   Dundee = "S01001101"
 )
 
-# Using a join-attribute table function from the following link
-
-#http://permalink.gmane.org/gmane.comp.lang.r.geo/20914#
-
-join_attribute_table <- function(x, y, xcol, ycol) {
-  # Merges data frame to SpatialPolygonsDataFrame, keeping the correct
- # order. Code from suggestions at:
-    # https://stat.ethz.ch/pipermail/r-sig-geo/2008-January/003064.html
-    # Args:
-    #   x: SpatialPolygonsDataFrame
-    #   y: Name of data.frame to merge
-    #   xcol: Merge column name
-    #   ycol: Merge column name
-    # Returns: Shapefile with merged attribute table
-    
-    x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing
-  #original row order for later sorting
-   
-  x.dat <- as(x, "data.frame")  # Create new data.frame object
-  x.dat2 <- merge(x.dat, y, by.x = xcol, by.y = ycol)  # Merge
-  x.dat2.ord <- x.dat2[order(x.dat2$sort_id), ]  # Reorder back to original
-  x2 <- x[x$sort_id %in% x.dat2$sort_id, ]  # Make new set of
-  #polygons, dropping those which aren't in merge
-  x2.dat <- as(x2, "data.frame")  # Make update x2 into a data.frame
-  row.names(x.dat2.ord) <- row.names(x2.dat)  # Reassign row.names
-  # from original data.frame
-  x2@data <- x.dat2.ord  # Assign to shapefile the new data.frame
-  return(x2)
-}
 
 fn <- function(x){
   # x now contains 
@@ -217,28 +174,6 @@ a_ply(combinations, 1, fn, .progress = "text")
 # This seems to have worked programmatically, but the TTWA areas are non-contiguous and so look like they aren't correct
 
 # to check this more carefully I'm now going to plot the shapefiles, highlighting particular ttwas
-
-
-plot(dz_2001_shp)
-
-
-
-
-shp_joined <- dz_2001_shp
-
-# Rather than try to merge, instead try to filter 
-
-
-
-plot(shp_joined)
-
-these_dzs <- ttwa  %>% filter(TTWA01NM == "Aberdeen")  %>% .$LSOA01CD  %>% unique
-sel <- shp_joined$zonecode %in% these_dzs
-plot(shp_joined[sel,], col = "red", add =T)
-
-these_dzs <- ttwa  %>% filter(TTWA01NM == "Glasgow")  %>% .$LSOA01CD  %>% unique
-sel <- shp_joined$zonecode %in% these_dzs
-plot(shp_joined[sel,], col = "blue", add =T)
 
 
 
