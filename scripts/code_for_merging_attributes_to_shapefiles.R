@@ -4,6 +4,7 @@
 rm(list = ls())
 
 
+require(readr)
 
 require(spdep)
 require(maptools)
@@ -13,9 +14,6 @@ require(stringr)
 require(plyr)
 require(tidyr)
 require(dplyr)
-
-
-
 
 
 
@@ -122,6 +120,67 @@ combinations <- expand.grid(attributes = att_files, ttwa = ttwas)
 # so, the aim is to produce smaller joins for each ttwa, and to label each year/attribute/ttwa shapefile appropriately
 ttwa <- read_csv(file = "input_data/lookups/LSOA01_TTWA01_UK_LU.csv", col_types = "ccccccc")
 
+# Need to state centroids for each ttwa
+
+# Definitions of centroids 
+
+# Glasgow
+#  - West End of George Square
+# G1 3BU
+# S01003358
+
+# Edinburgh 
+# - 31 Waverley Bridge
+# EH1 1BQ
+# S01002131
+
+
+# Aberdeen
+# - Shoe Lane
+# AB10 1AN
+# S01000126
+
+# Dundee 
+# - Commercial Street
+# DD1 2AJ
+# S01001101
+
+ttwa_centroids <- c(
+  Aberdeen = "S01000125",
+  Glasgow = "S01003358",
+  Edinburgh = "S01002131", 
+  Dundee = "S01001101"
+)
+
+# Using a join-attribute table function from the following link
+
+#http://permalink.gmane.org/gmane.comp.lang.r.geo/20914#
+
+join_attribute_table <- function(x, y, xcol, ycol) {
+  # Merges data frame to SpatialPolygonsDataFrame, keeping the correct
+ # order. Code from suggestions at:
+    # https://stat.ethz.ch/pipermail/r-sig-geo/2008-January/003064.html
+    # Args:
+    #   x: SpatialPolygonsDataFrame
+    #   y: Name of data.frame to merge
+    #   xcol: Merge column name
+    #   ycol: Merge column name
+    # Returns: Shapefile with merged attribute table
+    
+    x$sort_id <- 1:nrow(as(x, "data.frame"))  # Column containing
+  #original row order for later sorting
+   
+  x.dat <- as(x, "data.frame")  # Create new data.frame object
+  x.dat2 <- merge(x.dat, y, by.x = xcol, by.y = ycol)  # Merge
+  x.dat2.ord <- x.dat2[order(x.dat2$sort_id), ]  # Reorder back to original
+  x2 <- x[x$sort_id %in% x.dat2$sort_id, ]  # Make new set of
+  #polygons, dropping those which aren't in merge
+  x2.dat <- as(x2, "data.frame")  # Make update x2 into a data.frame
+  row.names(x.dat2.ord) <- row.names(x2.dat)  # Reassign row.names
+  # from original data.frame
+  x2@data <- x.dat2.ord  # Assign to shapefile the new data.frame
+  return(x2)
+}
 
 fn <- function(x){
   # x now contains 
@@ -129,14 +188,18 @@ fn <- function(x){
   # x$ttwa 
   infile <- read_csv(paste0("output_data/dz_2001/binary/", x$attributes))
   infile <- infile[!duplicated(infile),]
-
+  # Now need to add one more column: centre
+  # 1 if city centre; 0 otherwise
+  infile <- infile %>% mutate(
+    centre = ifelse(dz_2001 == ttwa_centroids[x$ttwa], 1, 0)
+  )
+  
   dzs_in_selection <- ttwa %>% filter(TTWA01NM == x$ttwa) %>% .$LSOA01CD %>% unique
 
-  shp_joined <- dz_2001_shp
-  
+  shp_joined <- join_attribute_table(dz_2001_shp, infile, "zonecode", "dz_2001")
+
   shp_joined <- shp_joined[shp_joined$zonecode %in% dzs_in_selection,]
   
-
   outname <- paste0(x$ttwa, "_", str_replace(x$attributes, "\\.csv$", ""))
   plot(shp_joined, main = outname)
 
@@ -146,6 +209,7 @@ fn <- function(x){
   return(NULL)
 }
 
+#debug(fn)
 
 a_ply(combinations, 1, fn, .progress = "text")
 
