@@ -108,6 +108,10 @@ ttwa <- read_csv(file = "input_data/lookups/LSOA01_TTWA01_UK_LU.csv", col_types 
 
 # Need to state centroids for each ttwa
 
+ 
+# ACTION: Ask Gwilym for his defintions of centres for ttwas
+
+
 # Definitions of centroids 
 
 # Glasgow

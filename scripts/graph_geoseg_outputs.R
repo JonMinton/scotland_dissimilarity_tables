@@ -158,3 +158,30 @@ dta %>%
 
 
 ggsave("figures/core_segregation_indices.png", height = 20, width = 25, units = "cm", dpi = 300)
+
+# show table of proportion increases and decreases in seg values from 2001 to 2011
+dta %>% 
+  gather(key = measure, value = value, -Table, -Year, -Name) %>% 
+  select(table = Table, year = Year, name = Name, measure, value) %>% 
+  filter(name %in% minority_group) %>% 
+  mutate(year = as.factor(year)) %>%  
+  mutate(table = str_trim(table)) %>% 
+  mutate(table = recode(table,
+                        recodes = "
+                        'accom' = 'Non-homeowners';
+                        'car' = 'Non-car owners';
+                        'cob' = 'Not Scottish';
+                        'ethnicity' = 'Non-white';
+                        'general health' = 'Not good health';
+                        'llti' = 'Has longstanding limiting illness';
+                        'marital status' = 'Single';
+                        'nssec' = 'Lower occupational group'
+                        "
+  )) %>% 
+  filter(measure %in% seg_indices) %>% 
+  spread(year, value) %>% 
+  mutate(ratio = `2011` / `2001`) %>% 
+  select(table, measure, ratio) %>% 
+  spread(measure, ratio)
+
+

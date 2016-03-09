@@ -57,7 +57,7 @@ cob_n_t1 <- read_csv("output_data/dz_2001/cob_2001.csv")
 cob_n_t2 <- read_csv("output_data/dz_2001/cob_2011.csv")
 
 cob_2_t1 <- cob_n_t1 %>% transmute(dz_2001, total, scotland, nonscot = ruk + elsewhere)
-cob_2_t2 <- cob_n_t1 %>% transmute(dz_2001, total, scotland, nonscot = ruk + elsewhere)
+cob_2_t2 <- cob_n_t2 %>% transmute(dz_2001, total, scotland, nonscot = ruk + elsewhere)
 
 # checked, both OK
 
