@@ -177,12 +177,5 @@ dz_joined[dz_joined$four_cities == "Dundee",] %>%
 dev.off()
 
 
-# quick map of Carlisle
-png("maps/ttwa_centre_dundee.png", width = 15, height = 15, units = "cm", res = 300)
-dz_joined[dz_joined$TTWA01NM == "Carlisle",] %>% 
-  qtm(.) 
-
-dev.off()
-
 
 
