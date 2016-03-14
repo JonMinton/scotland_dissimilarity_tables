@@ -83,6 +83,34 @@ qtm(dz_joined, fill = "grey", borders = NULL) +
   
 dev.off()  
 
+
+dz_joined <- append_data(
+  shp = dz_2001_shp, data = ttwa, 
+  key.shp = "zonecode", key.data = "LSOA01CD",
+  ignore.duplicates = T
+) 
+
+png("maps/areas_with_consistently_high_lltis.png", height = 15, width = 10, res = 300, units = "cm")
+qtm(dz_joined, fill = "grey", borders = NULL) + 
+  qtm(dz_joined[
+    dz_joined$TTWA01NM %in% 
+      c("Dunoon and Bute", "Newton Stewart and Wigtown", "Stranraer", 
+        "Greenock", "Kirkcaldy and Glenrothes", "Irvine and Arran","Ayr and Kilmarnock")
+    ,], 
+    fill = "TTWA01NM", borders = NULL, fill.title = "TTWA Name")
+dev.off()
+
+png("maps/areas_with_consistently_high_higher_sec.png", height = 15, width = 10, res = 300, units = "cm")
+
+qtm(dz_joined, fill = "grey", borders = NULL) + 
+  qtm(dz_joined[
+    dz_joined$TTWA01NM %in% 
+      c("Edinburgh", "St Andrews and Cupar", "Aberdeen", "Glasgow", "Stirling and Alloa", "Perth and Blairgowrie", "Galashiels and Peebles", "Dundee")
+    ,], 
+    fill = "TTWA01NM", borders = NULL, fill.title = "TTWA Name")
+dev.off()
+
+
 #shp_joined <- join_attribute_table(dz_2001_shp, ttwa, "zonecode", "LSOA01CD")
 # Need to state centroids for each ttwa
 
