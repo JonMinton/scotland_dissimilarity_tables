@@ -539,6 +539,62 @@ pensioner_rank_change <- vals_wide %>%
   mutate(change_in_rank = rank_2011 - rank_2001)
 
 
+# students
+
+
+s_2001 <- read_csv(file = "output_data/dz_2001/binary/students_2001.csv")
+
+# students, 2001
+s_t1 <- s_2001 %>% 
+  left_join(ttwa, by = c("dz_2001" = "LSOA01CD")) %>% 
+  select(TTWA01NM, total, student, nonstudent) %>% 
+  group_by(TTWA01NM) %>% 
+  summarise_each(funs(sum)) %>% 
+  mutate(proportion_minority = student/total) %>% 
+  arrange(desc(proportion_minority)) %>%
+  mutate(rank = rank(desc(proportion_minority))) %>% 
+  mutate(year = 2001) %>% 
+  select(ttwa = TTWA01NM, year, proportion_student = proportion_minority, rank)
+
+
+s_2011 <- read_csv(file = "output_data/dz_2001/binary/students_2011.csv")
+
+# students, 2011
+s_t2 <- s_2011 %>% 
+  left_join(ttwa, by = c("dz_2001" = "LSOA01CD")) %>% 
+  select(TTWA01NM, total, student, nonstudent) %>% 
+  group_by(TTWA01NM) %>% 
+  summarise_each(funs(sum)) %>% 
+  mutate(proportion_minority = student/total) %>% 
+  arrange(desc(proportion_minority)) %>%
+  mutate(rank = rank(desc(proportion_minority))) %>% 
+  mutate(year = 2011) %>% 
+  select(ttwa = TTWA01NM, year, proportion_student = proportion_minority, rank)
+
+
+
+s_both <- bind_rows(s_t1, s_t2)
+
+vals_wide <- s_both %>% 
+  select(-rank) %>% 
+  spread(year, proportion_student) %>% 
+  rename(prop_2001= `2001`, prop_2011 = `2011`)
+
+rank_wide <- s_both %>% 
+  select(-proportion_student) %>% 
+  spread(year, rank) %>% 
+  rename(rank_2001= `2001`, rank_2011 = `2011`)
+
+
+student_rank_change <- vals_wide %>% 
+  inner_join(rank_wide) %>% 
+  arrange(rank_2001) %>% 
+  mutate(change_in_rank = rank_2011 - rank_2001)
+
+
+
+
+
 
 
 # religion

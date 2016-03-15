@@ -72,6 +72,47 @@ qtm(dz_joined, fill = "grey", borders = NULL) +
   
 dev.off()
 
+
+# now to try the same with the cartogram
+
+dz_cart_shp <- read_shape(file = "shapefiles/Scotland_2001_population_cartogram.shp")
+dz_cart_shp <- set_projection(
+  dz_cart_shp, 
+  projection = get_proj4("longlat"), 
+  current.projection = get_projection(dz_2001_shp), 
+  overwrite.current.projection = T
+  )
+
+cart_joined <- append_data(
+  shp = dz_cart_shp, data = ttwa_simple, 
+  key.shp = "zonecode", key.data = "LSOA01CD",
+  ignore.duplicates = T
+) 
+
+# Present travel to work areas as a single figure 
+
+png("maps/travel_to_work_areas_cartogram.png", height = 15, width = 10, res = 300, units = "cm")
+
+qtm(cart_joined, fill = "grey", borders = NULL) + 
+  qtm(cart_joined[cart_joined$four_cities == "Glasgow",], fill = "red", borders = NULL) + 
+  qtm(cart_joined[cart_joined$four_cities == "Edinburgh",], fill = "blue", borders = NULL) + 
+  qtm(cart_joined[cart_joined$four_cities == "Dundee",], fill = "green", borders = NULL) + 
+  qtm(cart_joined[cart_joined$four_cities == "Aberdeen",], fill = "purple", borders = NULL) 
+
+dev.off()
+
+
+# for completeness let's do the cartogram with all TTWAs 
+png("maps/all_travel_to_work_areas_cartogram.png", height = 30, width = 20, res = 300, units = "cm")
+tm_shape(cart_joined) + 
+  tm_fill(col = "TTWA01NM", borders = NULL, legend.show = T, style = "cat", max.categories = 48)
+dev.off()  
+
+# TO DO: produce another version of the shapefile with only TTWAs as polygons, then use
+# this to display names of TTWAs on top of the areas using tm_text
+
+
+
 png("maps/areas_with_largest_nonscottish_populations.png", height = 15, width = 10, res = 300, units = "cm")
 qtm(dz_joined, fill = "grey", borders = NULL) + 
   qtm(dz_joined[dz_joined$TTWA01NM == "Carlisle",], fill = "red", borders = NULL) +  

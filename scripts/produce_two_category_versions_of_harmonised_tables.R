@@ -148,9 +148,12 @@ rel_2_t2 <- rel_n_t2 %>%
 spo_n_t1 <- read_csv("output_data/dz_2001/studentspensionersother_2001.csv")
 spo_n_t2 <- read_csv("output_data/dz_2001/studentspensionersother_2011.csv")
 
-spo_2_t1 <- spo_n_t1 %>% transmute(dz_2001, total, pensioner, nonpensioner = student + other)
-spo_2_t2 <- spo_n_t2 %>% transmute(dz_2001, total, pensioner, nonpensioner = student + other)
+po_2_t1 <- spo_n_t1 %>% transmute(dz_2001, total, pensioner, nonpensioner = student + other)
+po_2_t2 <- spo_n_t2 %>% transmute(dz_2001, total, pensioner, nonpensioner = student + other)
 # checked both, OK
+so_2_t1 <- spo_n_t1 %>% transmute(dz_2001, total, student, nonstudent = pensioner + other)
+so_2_t2 <- spo_n_t2 %>% transmute(dz_2001, total, student, nonstudent = pensioner + other)
+
 
 
 # tenure 
@@ -197,8 +200,12 @@ write_csv(x = nssec_2_t2, path = "output_data/dz_2001/binary/nssec_2011.csv")
 write_csv(x = rel_2_t1, path = "output_data/dz_2001/binary/religion_2001.csv")
 write_csv(x = rel_2_t2, path = "output_data/dz_2001/binary/religion_2011.csv")
 
-write_csv(x = spo_2_t1, path = "output_data/dz_2001/binary/pensioners_2001.csv")
-write_csv(x = spo_2_t2, path = "output_data/dz_2001/binary/pensioners_2011.csv")
+write_csv(x = po_2_t1, path = "output_data/dz_2001/binary/pensioners_2001.csv")
+write_csv(x = po_2_t2, path = "output_data/dz_2001/binary/pensioners_2011.csv")
+
+write_csv(x = so_2_t1, path = "output_data/dz_2001/binary/students_2001.csv")
+write_csv(x = so_2_t2, path = "output_data/dz_2001/binary/students_2011.csv")
+
 
 write_csv(x = tenure_2_t1, path = "output_data/dz_2001/binary/homeowners_2001.csv")
 write_csv(x = tenure_2_t2, path = "output_data/dz_2001/binary/homeowners_2011.csv")
