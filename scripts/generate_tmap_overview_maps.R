@@ -39,7 +39,8 @@ dz_2001_shp <- read_shape(file = "shapefiles/scotland_2001_datazones/scotland_dz
 
 # produce separate shapfiles for separate TTWAs ---------------------------
 
-ttwas <- c("Aberdeen", "Glasgow", "Edinburgh", "Dundee")
+ttwas <- c("Aberdeen", "Glasgow", "Edinburgh", "Dundee", 
+           "Inverness and Dingwall", "Perth and Blairgowrie", "Stirling and Alloa")
 
 # so, the aim is to produce smaller joins for each ttwa, and to label each year/attribute/ttwa shapefile appropriately
 ttwa <- read_csv(file = "input_data/lookups/LSOA01_TTWA01_UK_LU.csv", col_types = "ccccccc")
@@ -49,8 +50,8 @@ ttwa <- read_csv(file = "input_data/lookups/LSOA01_TTWA01_UK_LU.csv", col_types 
 ttwa
 ttwa_simple <- ttwa %>% 
   mutate(
-    four_cities = TTWA01NM,
-    four_cities = ifelse(four_cities %in% ttwas, four_cities, "Elsewhere")
+    seven_cities = TTWA01NM,
+    seven_cities = ifelse(seven_cities %in% ttwas, seven_cities, "Elsewhere")
   )
 
 
@@ -64,12 +65,11 @@ dz_joined <- append_data(
 
 png("maps/travel_to_work_areas.png", height = 15, width = 10, res = 300, units = "cm")
 
+
 qtm(dz_joined, fill = "grey", borders = NULL) + 
-  qtm(dz_joined[dz_joined$four_cities == "Glasgow",], fill = "red", borders = NULL) + 
-  qtm(dz_joined[dz_joined$four_cities == "Edinburgh",], fill = "blue", borders = NULL) + 
-  qtm(dz_joined[dz_joined$four_cities == "Dundee",], fill = "green", borders = NULL) + 
-  qtm(dz_joined[dz_joined$four_cities == "Aberdeen",], fill = "purple", borders = NULL) 
-  
+  qtm(dz_joined[dz_joined$seven_cities != "Elsewhere",], 
+    fill = "seven_cities", borders = NULL, fill.title = "TTWA Name")
+
 dev.off()
 
 
@@ -93,11 +93,12 @@ cart_joined <- append_data(
 
 png("maps/travel_to_work_areas_cartogram.png", height = 15, width = 10, res = 300, units = "cm")
 
+
 qtm(cart_joined, fill = "grey", borders = NULL) + 
-  qtm(cart_joined[cart_joined$four_cities == "Glasgow",], fill = "red", borders = NULL) + 
-  qtm(cart_joined[cart_joined$four_cities == "Edinburgh",], fill = "blue", borders = NULL) + 
-  qtm(cart_joined[cart_joined$four_cities == "Dundee",], fill = "green", borders = NULL) + 
-  qtm(cart_joined[cart_joined$four_cities == "Aberdeen",], fill = "purple", borders = NULL) 
+  qtm(cart_joined[cart_joined$seven_cities != "Elsewhere",], 
+      fill = "seven_cities", borders = NULL, fill.title = "TTWA Name")
+
+
 
 dev.off()
 
