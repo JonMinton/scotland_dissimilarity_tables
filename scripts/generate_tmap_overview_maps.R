@@ -12,6 +12,7 @@ require(readr)
 require(spdep)
 require(maptools)
 require(rgdal)
+require(rgeos)
 
 require(stringr)
 require(plyr)
@@ -61,13 +62,24 @@ dz_joined <- append_data(
   ignore.duplicates = T
                          ) 
 
+# Attempt to produce dissolved version of above using ttwas 
+
+ttwa_joined <- gUnaryUnion(dz_joined, id = dz_joined@data$TTWA01NM)
+# horrible hacking (from https://philmikejones.wordpress.com/2015/09/03/dissolve-polygons-in-r/)
+df <- as.data.frame(names(ttwa_joined))
+colnames(df) <- "ttwa_name"
+row.names(ttwa_joined) <- as.character(1:length(ttwa_joined))
+ttwa_joined <- SpatialPolygonsDataFrame(ttwa_joined, df)
+
+
+
 # Present travel to work areas as a single figure 
 
 png("maps/travel_to_work_areas.png", height = 15, width = 10, res = 300, units = "cm")
 
 
-qtm(dz_joined, fill = "grey", borders = NULL) + 
-  qtm(dz_joined[dz_joined$seven_cities != "Elsewhere",], 
+qtm(ttwa_joined, fill = "grey", borders = NULL) + 
+  qtm(ttwa_joined[ttwa_joined$seven_cities != "Elsewhere",], 
     fill = "seven_cities", borders = NULL, fill.title = "TTWA Name")
 
 dev.off()
@@ -93,14 +105,19 @@ cart_joined <- append_data(
 
 png("maps/travel_to_work_areas_cartogram.png", height = 15, width = 10, res = 300, units = "cm")
 
-
 qtm(cart_joined, fill = "grey", borders = NULL) + 
   qtm(cart_joined[cart_joined$seven_cities != "Elsewhere",], 
       fill = "seven_cities", borders = NULL, fill.title = "TTWA Name")
 
-
-
 dev.off()
+
+cart_joined <- gUnaryUnion(cart_joined, id = cart_joined@data$TTWA01NM)
+# horrible hacking (from https://philmikejones.wordpress.com/2015/09/03/dissolve-polygons-in-r/)
+df <- as.data.frame(names(ttwa_joined))
+colnames(df) <- "ttwa_name"
+row.names(ttwa_joined) <- as.character(1:length(ttwa_joined))
+ttwa_joined <- SpatialPolygonsDataFrame(ttwa_joined, df)
+
 
 
 # for completeness let's do the cartogram with all TTWAs 
