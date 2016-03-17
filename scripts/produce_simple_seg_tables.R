@@ -11,6 +11,8 @@ require(tidyr)
 require(dplyr)
 
 require(ggplot2)
+require(GGally) # for ggpairs
+
 
 
 # load data ---------------------------------------------------------------
@@ -21,20 +23,22 @@ dta <- read_excel(path = "geoseg_outputs/geoseg_outputs.xlsx", sheet = "tidy")
 minority_vars <- c(
   "not_good", "nonhouse", "higher", 
   "llti", "single", "none", "nonrlgs", 
-  "nonscot", "nonwhite", "pensinr" 
+  "nonscot", "nonwhite", "pensinr",
+  "student"
   )
 
 minority_labels <- c(
   "Poor Health", "Non-house", "Grade 1 or 2", 
   "LLTI", "Single", "No Car", "Non-religious", 
-  "Not Scottish", "Not White", "Pensioner")
+  "Not Scottish", "Not White", "Pensioner",
+  "Student")
 
 names(minority_labels) <- minority_vars
 
 
 propchange <- dta %>% 
   filter(variable %in% minority_vars) %>% 
-#  mutate(variable = minority_labels[variable]) %>%  # This converts the variables to prettier names
+  mutate(variable = minority_labels[variable]) %>%  # This converts the variables to prettier names
   gather(key = index, value = value, -ttwa, -table, -year, -variable) %>% 
   spread(year, value) %>%
   mutate(change = (`2011` - `2001`) / `2001`) %>% 
@@ -77,91 +81,338 @@ propchange <- propchange %>%
   c('ACL', 'Pxx', 'Pxx Exp(-Dij)', 'DPxx') = 'Clustering';
   c('PCC', 'ACE') = 'Centralisation'
       "
-    )
+    ),
+    index = factor(
+      index, 
+      levels = c(
+        "IS", "IS(adj)", "IS(w)", "IS(s)", "H", "G", "A(0.1)", "A(0.5)", "A(0.9)",
+        "xPx", "Eta2",
+        "DEL", "ACO",
+        "ACL", "Pxx", "Pxx Exp(-Dij)", "DPxx",
+        "PCC", "ACE"
+      )
+    ) # convert to factor so variables are shown in correct order
   ) %>% 
-  select(ttwa, variable, dimension, index, change)
+  select(ttwa, variable, dimension, index, change) 
+  
 
 
-propchange  %>% 
-  filter(index %in% c("IS", "H", "G", "A(0.5)"))  %>% 
-  spread(index, change)  %>% 
-  mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
-  ggplot(., mapping =aes(x = H, y = IS)) + 
-  geom_text(aes(label = ttwa)) + 
-  facet_grid( ~variable, scales = "free")  +
-  stat_smooth(method = "lm") + 
-  theme_minimal()
+# Evenness comparisons
 
-propchange  %>% 
-  filter(index %in% c("IS", "H", "G", "A(0.5)"))  %>% 
-  spread(index, change)  %>% 
-  mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
-  ggplot(., mapping =aes(x = G, y = IS)) + 
-  geom_text(aes(label = ttwa)) + 
-  stat_smooth(method = "lm") + 
-  facet_grid( ~variable, scales = "free")  + 
-  theme_minimal()
+# IS 
+# H
+# G
+# A(0.5)
+
+
 
 propchange  %>% 
-  filter(index %in% c("IS", "H", "G", "A(0.5)"))  %>% 
+  filter(index %in% c("IS", "H"))  %>% 
   spread(index, change)  %>% 
   mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
-  ggplot(., mapping =aes(x = `A(0.5)`, y = IS)) + 
+  ggplot(., mapping =aes(x = `IS`, y = H, group = variable, colour = variable)) + 
   geom_text(aes(label = ttwa)) + 
-  stat_smooth(method = "lm") + 
-  facet_grid( ~variable, scales = "free")  + 
+  stat_smooth(method = "lm", se = F, linetype = "dashed") + 
   theme_minimal() +
-  coord_equal()
-
-
+  geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) + 
+  scale_colour_manual(
+    values = c(
+      "red", "darkred",
+      "orange", "darkorange",
+      "darkgrey",
+      "lightgreen", "green", "darkgreen",
+      "blue", "darkblue",
+      "purple", "darkpurple"
+    )
+  ) +
+  guides(col = guide_legend(title = "Census Group")) 
+  
+ggsave("figures/comparisons/H_vs_IS.png", dpi = 300, height = 20, width = 20, units = "cm")
 
 propchange  %>% 
-  filter(index %in% c("IS", "H", "G", "A(0.5)"))  %>% 
+  filter(index %in% c("IS", "G"))  %>% 
   spread(index, change)  %>% 
   mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
-  ggplot(., mapping =aes(x = H, y = IS)) + 
+  ggplot(., mapping =aes(x = `IS`, y = G, group = variable, colour = variable)) + 
   geom_text(aes(label = ttwa)) + 
-  facet_grid( ~variable, scales = "free")  +
-  stat_smooth(method = "lm") + 
-  theme_minimal()
+  stat_smooth(method = "lm", se = F, linetype = "dashed") + 
+  theme_minimal() +
+  geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) + 
+  scale_colour_manual(
+    values = c(
+      "red", "darkred",
+      "orange", "darkorange",
+      "darkgrey",
+      "lightgreen", "green", "darkgreen",
+      "blue", "darkblue",
+      "purple", "darkpurple"
+    )
+  ) +
+  guides(col = guide_legend(title = "Census Group")) 
+
+ggsave("figures/comparisons/G_vs_IS.png", dpi = 300, height = 20, width = 20, units = "cm")
 
 propchange  %>% 
-  filter(index %in% c("IS", "H", "G", "A(0.5)"))  %>% 
+  filter(index %in% c("IS", "A(0.5)"))  %>% 
   spread(index, change)  %>% 
   mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
-  ggplot(., mapping =aes(x = G, y = IS)) + 
+  ggplot(., mapping =aes(x = `IS`, y = `A(0.5)`, group = variable, colour = variable)) + 
   geom_text(aes(label = ttwa)) + 
-  stat_smooth(method = "lm") + 
-  facet_grid( ~variable, scales = "free")  + 
-  theme_minimal()
+  stat_smooth(method = "lm", se = F, linetype = "dashed") + 
+  theme_minimal() +
+  geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) + 
+  scale_colour_manual(
+    values = c(
+      "red", "darkred",
+      "orange", "darkorange",
+      "darkgrey",
+      "lightgreen", "green", "darkgreen",
+      "blue", "darkblue",
+      "purple", "darkpurple"
+    )
+  ) +
+  guides(col = guide_legend(title = "Census Group")) 
+  
+  ggsave("figures/comparisons/A_vs_IS.png", dpi = 300, height = 20, width = 20, units = "cm")
+
+propchange  %>% 
+  filter(index %in% c("G", "H"))  %>% 
+  spread(index, change)  %>% 
+  mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
+  ggplot(., mapping =aes(x = `H`, y = `G`, group = variable, colour = variable)) + 
+  geom_text(aes(label = ttwa)) + 
+  stat_smooth(method = "lm", se = F, linetype = "dashed") + 
+  theme_minimal() +
+  geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) + 
+  scale_colour_manual(
+    values = c(
+      "red", "darkred",
+      "orange", "darkorange",
+      "darkgrey",
+      "lightgreen", "green", "darkgreen",
+      "blue", "darkblue",
+      "purple", "darkpurple"
+    )
+  ) +
+  guides(col = guide_legend(title = "Census Group")) 
+  
+  ggsave("figures/comparisons/G_vs_H.png", dpi = 300, height = 20, width = 20, units = "cm")
+
+propchange  %>% 
+  filter(index %in% c("G", "A(0.5)"))  %>% 
+  spread(index, change)  %>% 
+  mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
+  ggplot(., mapping =aes(x = `A(0.5)`, y = `G`, group = variable, colour = variable)) + 
+  geom_text(aes(label = ttwa)) + 
+  stat_smooth(method = "lm", se = F, linetype = "dashed") + 
+  theme_minimal() +
+  geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) + 
+  scale_colour_manual(
+    values = c(
+      "red", "darkred",
+      "orange", "darkorange",
+      "darkgrey",
+      "lightgreen", "green", "darkgreen",
+      "blue", "darkblue",
+      "purple", "darkpurple"
+    )
+  ) +
+  guides(col = guide_legend(title = "Census Group")) 
+  
+  ggsave("figures/comparisons/G_vs_A.png", dpi = 300, height = 20, width = 20, units = "cm")
+
+# Exposure comparison
 
 
 propchange  %>% 
   filter(index %in% c("xPx", "Eta2"))  %>% 
   spread(index, change)  %>% 
   mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
-  ggplot(., mapping =aes(x = `Eta2`, y = xPx, group = variable, colour = variable)) + 
+  ggplot(., mapping =aes(x = `xPx`, y = `Eta2`, group = variable, colour = variable)) + 
   geom_text(aes(label = ttwa)) + 
   stat_smooth(method = "lm", se = F, linetype = "dashed") + 
   theme_minimal() +
-  geom_hline(aes(y = 0)) + geom_vline(aes(x = 0))
+  geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) + 
+  scale_colour_manual(
+    values = c(
+      "red", "darkred",
+      "orange", "darkorange",
+      "darkgrey",
+      "lightgreen", "green", "darkgreen",
+      "blue", "darkblue",
+      "purple", "darkpurple"
+    )
+  ) +
+  guides(col = guide_legend(title = "Census Group")) 
+  
+  ggsave("figures/comparisons/exposure.png", dpi = 300, height = 20, width = 20, units = "cm")
+
+# Clustering comparisons
+
+propchange  %>% 
+  filter(index %in% c("ACL", "DPxx"))  %>% 
+  spread(index, change)  %>% 
+  mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
+  ggplot(., mapping =aes(x = `ACL`, y = `DPxx`, group = variable, colour = variable)) + 
+  geom_text(aes(label = ttwa)) + 
+  stat_smooth(method = "lm", se = F, linetype = "dashed") + 
+  geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) + 
+  theme_minimal() + 
+  scale_colour_manual(
+    values = c(
+      "red", "darkred",
+      "orange", "darkorange",
+      "darkgrey",
+      "lightgreen", "green", "darkgreen",
+      "blue", "darkblue",
+      "purple", "darkpurple"
+    )
+  ) +
+  guides(col = guide_legend(title = "Census Group")) 
+  
+  ggsave("figures/comparisons/clustering_ACL_DPxx.png", dpi = 300, height = 20, width = 20, units = "cm")
+
+propchange  %>% 
+  filter(index %in% c("ACL", "Pxx"))  %>% 
+  spread(index, change)  %>% 
+  mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
+  ggplot(., mapping =aes(x = `ACL`, y = `Pxx`, group = variable, colour = variable)) + 
+  geom_text(aes(label = ttwa)) + 
+  stat_smooth(method = "lm", se = F, linetype = "dashed") + 
+  geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) +
+  theme_minimal() + 
+  scale_colour_manual(
+    values = c(
+    "red", "darkred",
+    "orange", "darkorange",
+    "darkgrey",
+    "lightgreen", "green", "darkgreen",
+    "blue", "darkblue",
+    "purple", "darkpurple"
+    )
+    ) +
+  guides(col = guide_legend(title = "Census Group"))  
+  
+  ggsave("figures/comparisons/clustering_ACL_Pxx.png", dpi = 300, height = 20, width = 20, units = "cm")
+
 
 
 propchange  %>% 
-  filter(index %in% c("xPx", "Eta2"))  %>% 
+  filter(index %in% c("ACL", "Pxx Exp(-Dij)"))  %>% 
   spread(index, change)  %>% 
   mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
-  ggplot(., mapping =aes(x = `Eta2`, y = xPx)) + 
+  ggplot(., mapping =aes(x = `ACL`, y = `Pxx Exp(-Dij)`, group = variable, colour = variable)) + 
   geom_text(aes(label = ttwa)) + 
   stat_smooth(method = "lm", se = F, linetype = "dashed") + 
   theme_minimal() +
-  facet_grid(~variable, scales = "free") + 
-  geom_hline(aes(y = 0), colour = "grey") + geom_vline(aes(x = 0), colour = "grey")
+  geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) + 
+  scale_colour_manual(
+    values = c(
+      "red", "darkred",
+      "orange", "darkorange",
+      "darkgrey",
+      "lightgreen", "green", "darkgreen",
+      "blue", "darkblue",
+      "purple", "darkpurple"
+    )
+  ) +
+  guides(col = guide_legend(title = "Census Group")) 
+  
+  ggsave("figures/comparisons/clustering_ACL_Pxx Exp(-Dij).png", dpi = 300, height = 20, width = 20, units = "cm")
 
 
+propchange  %>% 
+  filter(index %in% c("ACL", "DPxx"))  %>% 
+  spread(index, change)  %>% 
+  mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
+  ggplot(., mapping =aes(x = `ACL`, y = `DPxx`, group = variable, colour = variable)) + 
+  geom_text(aes(label = ttwa)) + 
+  stat_smooth(method = "lm", se = F, linetype = "dashed") + 
+  theme_minimal() +
+  geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) + 
+  scale_colour_manual(
+    values = c(
+      "red", "darkred",
+      "orange", "darkorange",
+      "darkgrey",
+      "lightgreen", "green", "darkgreen",
+      "blue", "darkblue",
+      "purple", "darkpurple"
+    )
+  ) +
+  guides(col = guide_legend(title = "Census Group")) 
+  
+  ggsave("figures/comparisons/clustering_ACL_DPxx.png", dpi = 300, height = 20, width = 20, units = "cm")
 
 
-             
+# concentration
+  
+  
+  propchange  %>% 
+    filter(index %in% c("DEL", "ACO"))  %>% 
+    spread(index, change)  %>% 
+    mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'")) %>% 
+    ggplot(., mapping =aes(x = `DEL`, y = `ACO`, group = variable, colour = variable)) + 
+    geom_text(aes(label = ttwa)) + 
+    stat_smooth(method = "lm", se = F, linetype = "dashed") + 
+    theme_minimal() +
+    geom_hline(aes(yintercept = 0)) + geom_vline(aes(xintercept = 0)) + 
+    scale_colour_manual(
+      values = c(
+        "red", "darkred",
+        "orange", "darkorange",
+        "darkgrey",
+        "lightgreen", "green", "darkgreen",
+        "blue", "darkblue",
+        "purple", "darkpurple"
+      )
+    ) +
+    guides(col = guide_legend(title = "Census Group")) 
+  
+  ggsave("figures/comparisons/concentration.png", dpi = 300, height = 20, width = 20, units = "cm")
+  
+  
+  
+  
+declutter <- function(x){
+  output <- x %>% str_replace_all("\\(", "") %>% 
+    str_replace_all("\\)", "") %>% 
+    str_replace_all(" ", "_") %>% 
+    str_replace_all("\\-", "less")
+  return(output)  
+}
+
+png(filename = "figures/ggpairs_example.png", height = 80, width = 80, units = "cm", res = 300)
+propchange  %>% 
+  select(-dimension)  %>% 
+  filter(index %in% c(
+    "IS", "H", "G", "A(0.5)",
+    "xPx", "Eta2",
+    "DEL", "ACO",
+    "ACL", "Pxx", 
+    "PCC", "ACE"                  
+                      )) %>% 
+  mutate(index = declutter(index))  %>% 
+  spread(index, change)   %>%  
+  select(
+    ttwa, variable, 
+    IS, H, G, `A0.5`,
+    xPx, Eta2,
+    DEL, ACO,
+    ACL, Pxx, 
+    PCC, ACE    
+         ) %>% 
+  mutate(ttwa = recode(ttwa, "'Aberdeen' = 'A'; 'Glasgow' = 'G'; 'Dundee' = 'D'; 'Edinburgh' = 'E'"))  %>% 
+  ggpairs(
+    data = ., 
+    mapping = ggplot2::aes(label = ttwa, group = variable, colour = variable), 
+    columns = 3:14,
+    diag = NULL,
+    lower = list(continuous = "points")
+  ) 
+dev.off()
+
+
 
 
 
