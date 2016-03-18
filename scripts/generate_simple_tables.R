@@ -649,6 +649,111 @@ religious_rank_change <- vals_wide %>%
   arrange(rank_2001) %>% 
   mutate(change_in_rank = rank_2011 - rank_2001)
 
+
+
+# employed as % of working age population
+
+
+# emp, 2001
+e_2001 <- read_csv(file = "output_data/dz_2001/binary/employed_2001.csv")
+
+e_t1 <- e_2001 %>% 
+  left_join(ttwa, by = c("dz_2001" = "LSOA01CD")) %>% 
+  select(TTWA01NM, total, employed, nonemployed) %>% 
+  group_by(TTWA01NM) %>% 
+  summarise_each(funs(sum)) %>% 
+  mutate(proportion_minority = employed/total) %>% 
+  arrange(desc(proportion_minority)) %>%
+  mutate(rank = rank(desc(proportion_minority))) %>% 
+  mutate(year = 2001) %>% 
+  select(ttwa = TTWA01NM, year, proportion_employed = proportion_minority, rank)
+
+# emp, 2011
+e_2011 <- read_csv(file = "output_data/dz_2001/binary/employed_2011.csv")
+
+e_t2 <- e_2011 %>% 
+  left_join(ttwa, by = c("dz_2001" = "LSOA01CD")) %>% 
+  select(TTWA01NM, total, employed, nonemployed) %>% 
+  group_by(TTWA01NM) %>% 
+  summarise_each(funs(sum)) %>% 
+  mutate(proportion_minority = employed/total) %>% 
+  arrange(desc(proportion_minority)) %>%
+  mutate(rank = rank(desc(proportion_minority))) %>% 
+  mutate(year = 2011) %>% 
+  select(ttwa = TTWA01NM, year, proportion_employed = proportion_minority, rank)
+
+
+
+e_both <- bind_rows(e_t1, e_t2)
+
+vals_wide <- e_both %>% 
+  select(-rank) %>% 
+  spread(year, proportion_employed) %>% 
+  rename(prop_2001= `2001`, prop_2011 = `2011`)
+
+rank_wide <- e_both %>% 
+  select(-proportion_employed) %>% 
+  spread(year, rank) %>% 
+  rename(rank_2001= `2001`, rank_2011 = `2011`)
+
+
+employed_rank_change <- vals_wide %>% 
+  inner_join(rank_wide) %>% 
+  arrange(rank_2001) %>% 
+  mutate(change_in_rank = rank_2011 - rank_2001)
+
+
+# economically inactive as % of working age population
+
+
+# inactive, 2001
+i_2001 <- read_csv(file = "output_data/dz_2001/binary/inactive_2001.csv")
+
+i_t1 <- i_2001 %>% 
+  left_join(ttwa, by = c("dz_2001" = "LSOA01CD")) %>% 
+  select(TTWA01NM, total, active, inactive) %>% 
+  group_by(TTWA01NM) %>% 
+  summarise_each(funs(sum)) %>% 
+  mutate(proportion_minority = inactive/total) %>% 
+  arrange(desc(proportion_minority)) %>%
+  mutate(rank = rank(desc(proportion_minority))) %>% 
+  mutate(year = 2001) %>% 
+  select(ttwa = TTWA01NM, year, proportion_inactive = proportion_minority, rank)
+
+# inactive, 2011
+i_2011 <- read_csv(file = "output_data/dz_2001/binary/inactive_2011.csv")
+
+i_t2 <- i_2011 %>% 
+  left_join(ttwa, by = c("dz_2001" = "LSOA01CD")) %>% 
+  select(TTWA01NM, total, active, inactive) %>% 
+  group_by(TTWA01NM) %>% 
+  summarise_each(funs(sum)) %>% 
+  mutate(proportion_minority = inactive/total) %>% 
+  arrange(desc(proportion_minority)) %>%
+  mutate(rank = rank(desc(proportion_minority))) %>% 
+  mutate(year = 2011) %>% 
+  select(ttwa = TTWA01NM, year, proportion_inactive = proportion_minority, rank)
+
+
+
+i_both <- bind_rows(i_t1, i_t2)
+
+vals_wide <- i_both %>% 
+  select(-rank) %>% 
+  spread(year, proportion_inactive) %>% 
+  rename(prop_2001= `2001`, prop_2011 = `2011`)
+
+rank_wide <- i_both %>% 
+  select(-proportion_inactive) %>% 
+  spread(year, rank) %>% 
+  rename(rank_2001= `2001`, rank_2011 = `2011`)
+
+
+inactive_rank_change <- vals_wide %>% 
+  inner_join(rank_wide) %>% 
+  arrange(rank_2001) %>% 
+  mutate(change_in_rank = rank_2011 - rank_2001)
+
 # write out proportions to excel tabs
 
 
@@ -709,10 +814,19 @@ addDataFrame(
   sheet = createSheet(wb, sheetName = "religious_rank_change")
 )
 
+addDataFrame(
+  x = employed_rank_change,
+  sheet = createSheet(wb, sheetName = "employed_rank_change")
+)
+
+addDataFrame(
+  x = inactive_rank_change,
+  sheet = createSheet(wb, sheetName = "inactive_rank_change")
+)
 
 saveWorkbook(wb, file = "tables/proportion_ranks.xlsx")
 
 
   
-)
+
 
