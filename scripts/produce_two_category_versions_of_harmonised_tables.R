@@ -24,6 +24,9 @@ require(tidyr)
 # religion
 # student pensioner
 # tenure
+# employed/not employed
+# economic inactive
+
 
 
 # accom
@@ -172,6 +175,29 @@ tenure_2_t2 <- tenure_n_t2 %>%
 
 
 
+# employed/not employed
+
+employed_n_t1 <- read_csv("output_data/dz_2001/economic_activity_bigger_2001.csv")
+employed_n_t2 <- read_csv("output_data/dz_2001/economic_activity_bigger_2011.csv")
+
+employed_2_t1 <- employed_n_t1 %>% 
+  transmute(dz_2001, total, employed, nonemployed = unemployed + student + retired + homemaker + sick + inactive_other)
+
+employed_2_t2 <- employed_n_t2 %>% 
+  transmute(dz_2001, total, employed, nonemployed = unemployed + student + retired + homemaker + sick + inactive_other)
+
+
+# economic inactive 
+
+ecact_n_t1 <- read_csv("output_data/dz_2001/economic_activity_simple_2001.csv")
+ecact_n_t2 <- read_csv("output_data/dz_2001/economic_activity_simple_2011.csv")
+
+# already binary
+
+ecact_2_t1 <- ecact_n_t1
+ecact_2_t2 <- ecact_n_t2
+
+
 # now to write these all out 
 
 write_csv(x = accom_2_t1, path = "output_data/dz_2001/binary/accom_2001.csv")
@@ -209,3 +235,11 @@ write_csv(x = so_2_t2, path = "output_data/dz_2001/binary/students_2011.csv")
 
 write_csv(x = tenure_2_t1, path = "output_data/dz_2001/binary/homeowners_2001.csv")
 write_csv(x = tenure_2_t2, path = "output_data/dz_2001/binary/homeowners_2011.csv")
+
+
+write_csv(x = employed_2_t1, path = "output_data/dz_2001/binary/employed_2001.csv")
+write_csv(x = employed_2_t2, path = "output_data/dz_2001/binary/employed_2011.csv")
+
+write_csv(x = ecact_2_t1, path = "output_data/dz_2001/binary/inactive_2001.csv")
+write_csv(x = ecact_2_t2, path = "output_data/dz_2001/binary/inactive_2011.csv")
+
