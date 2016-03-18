@@ -24,14 +24,14 @@ minority_vars <- c(
   "not_good", "nonhouse", "higher", 
   "llti", "single", "none", "nonrlgs", 
   "nonscot", "nonwhite", "pensinr",
-  "student"
+  "student", "employd", "inactive"
   )
 
 minority_labels <- c(
   "Poor Health", "Non-house", "Grade 1 or 2", 
   "LLTI", "Single", "No Car", "Non-religious", 
   "Not Scottish", "Not White", "Pensioner",
-  "Student")
+  "Student", "Employed", "Inactive")
 
 names(minority_labels) <- minority_vars
 
@@ -119,10 +119,10 @@ propchange  %>%
     values = c(
       "red", "darkred",
       "orange", "darkorange",
-      "darkgrey",
+      "darkgrey", "black",
       "lightgreen", "green", "darkgreen",
       "blue", "darkblue",
-      "purple", "darkpurple"
+      "purple", "pink"
     )
   ) +
   guides(col = guide_legend(title = "Census Group")) 
@@ -142,10 +142,10 @@ propchange  %>%
     values = c(
       "red", "darkred",
       "orange", "darkorange",
-      "darkgrey",
+      "darkgrey", "black",
       "lightgreen", "green", "darkgreen",
       "blue", "darkblue",
-      "purple", "darkpurple"
+      "purple", "pink"
     )
   ) +
   guides(col = guide_legend(title = "Census Group")) 
@@ -165,10 +165,10 @@ propchange  %>%
     values = c(
       "red", "darkred",
       "orange", "darkorange",
-      "darkgrey",
+      "darkgrey", "black",
       "lightgreen", "green", "darkgreen",
       "blue", "darkblue",
-      "purple", "darkpurple"
+      "purple", "pink"
     )
   ) +
   guides(col = guide_legend(title = "Census Group")) 
@@ -188,10 +188,10 @@ propchange  %>%
     values = c(
       "red", "darkred",
       "orange", "darkorange",
-      "darkgrey",
+      "darkgrey", "black",
       "lightgreen", "green", "darkgreen",
       "blue", "darkblue",
-      "purple", "darkpurple"
+      "purple", "pink"
     )
   ) +
   guides(col = guide_legend(title = "Census Group")) 
@@ -211,10 +211,10 @@ propchange  %>%
     values = c(
       "red", "darkred",
       "orange", "darkorange",
-      "darkgrey",
+      "darkgrey", "black",
       "lightgreen", "green", "darkgreen",
       "blue", "darkblue",
-      "purple", "darkpurple"
+      "purple", "pink"
     )
   ) +
   guides(col = guide_legend(title = "Census Group")) 
@@ -237,10 +237,10 @@ propchange  %>%
     values = c(
       "red", "darkred",
       "orange", "darkorange",
-      "darkgrey",
+      "darkgrey", "black",
       "lightgreen", "green", "darkgreen",
       "blue", "darkblue",
-      "purple", "darkpurple"
+      "purple", "pink"
     )
   ) +
   guides(col = guide_legend(title = "Census Group")) 
@@ -262,10 +262,10 @@ propchange  %>%
     values = c(
       "red", "darkred",
       "orange", "darkorange",
-      "darkgrey",
+      "darkgrey", "black",
       "lightgreen", "green", "darkgreen",
       "blue", "darkblue",
-      "purple", "darkpurple"
+      "purple", "pink"
     )
   ) +
   guides(col = guide_legend(title = "Census Group")) 
@@ -285,10 +285,10 @@ propchange  %>%
     values = c(
     "red", "darkred",
     "orange", "darkorange",
-    "darkgrey",
+    "darkgrey", "black",
     "lightgreen", "green", "darkgreen",
     "blue", "darkblue",
-    "purple", "darkpurple"
+    "purple", "pink"
     )
     ) +
   guides(col = guide_legend(title = "Census Group"))  
@@ -310,10 +310,10 @@ propchange  %>%
     values = c(
       "red", "darkred",
       "orange", "darkorange",
-      "darkgrey",
+      "darkgrey", "black",
       "lightgreen", "green", "darkgreen",
       "blue", "darkblue",
-      "purple", "darkpurple"
+      "purple", "pink"
     )
   ) +
   guides(col = guide_legend(title = "Census Group")) 
@@ -334,10 +334,10 @@ propchange  %>%
     values = c(
       "red", "darkred",
       "orange", "darkorange",
-      "darkgrey",
+      "darkgrey", "black",
       "lightgreen", "green", "darkgreen",
       "blue", "darkblue",
-      "purple", "darkpurple"
+      "purple", "pink"
     )
   ) +
   guides(col = guide_legend(title = "Census Group")) 
@@ -361,10 +361,10 @@ propchange  %>%
       values = c(
         "red", "darkred",
         "orange", "darkorange",
-        "darkgrey",
+        "darkgrey", "black",
         "lightgreen", "green", "darkgreen",
         "blue", "darkblue",
-        "purple", "darkpurple"
+        "purple", "pink"
       )
     ) +
     guides(col = guide_legend(title = "Census Group")) 
