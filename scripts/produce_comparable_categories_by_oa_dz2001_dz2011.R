@@ -407,71 +407,6 @@ write_csv(cob_2011, path = "output_data/oa_harmonised/cob_2011.csv")
 
 
 
-# economic activity
-
-ecact_2001 <- read_csv("output_data/unharmonised/economicactivity_2001.csv")
-ecact_2011 <- read_csv("output_data/unharmonised/economicactivity_2011.csv")
-
-
-# > names(ecact_2001)
-# [1] "output_area"                                                                  
-# [2] "All people aged 16 - 74"                                                      
-# [3] "Number of people aged 16 - 74 Economically active Employees Part-time"        
-# [4] "Number of people aged 16 - 74 Economically active Employees Full-time"        
-# [5] "Number of people aged 16 - 74 Economically active Self employed"              
-# [6] "Number of people aged 16 - 74 Economically active Unemployed"                 
-# [7] "Number of people aged 16 - 74 Economically active Full-time student"          
-# [8] "Number of people aged 16 - 74 Economically inactive Retired"                  
-# [9] "Number of people aged 16 - 74 Economically inactive Student"                  
-# [10] "Number of people aged 16 - 74 Economically inactive Looking after home/family"
-# [11] "Number of people aged 16 - 74 Economically inactive Permanently sick/disabled"
-# [12] "Number of people aged 16 - 74 Economically inactive Other"                    
-# [13] "Number of unemployed people aged 16-74: Aged 16-24 years"                     
-# [14] "Number of unemployed people aged 16-74: Aged 50 years and over"               
-# [15] "Number of unemployed people aged 16-74 who have never worked"                 
-# [16] "Number of unemployed people aged 16-74 who are long-term unemployed"          
-
-names(ecact_2001) <- c("output_area", "total", "ft", "pt", "se", "unemp", "ftstud", "retired", "student", "home", "sick", "other", "16_24", "50_plus", "never_worked", "ltunemp")
-
-ecact_2001 <- ecact_2001 %>% 
-  transmute(output_area, total, 
-            employed = ft + pt + se, 
-            unemployed = unemp, 
-            other = ftstud + retired + student + home + sick + other
-            )
-
-# > ecact_2001 %>% mutate(t2 = employed + unemployed + other, check = total == t2)  %>% xtabs(~check, data = .)
-# check
-# TRUE 
-# 42604
-
-
-#> names(ecact_2011)
-# [1] "output_area"                                           "All people aged 16 to 74"                             
-# [3] "Economically active: Employee: Part-time"              "Economically active: Employee: Full-time"             
-# [5] "Economically active: Self-employed"                    "Economically active: Unemployed"                      
-# [7] "Economically active: Full-time student"                "Economically inactive: Retired"                       
-# [9] "Economically inactive: Student"                        "Economically inactive: Looking after home or family"  
-# [11] "Economically inactive: Long-term sick or disabled"     "Economically inactive: Other"                         
-# [13] "Unemployed people aged 16 to 74: Aged 16 to 24"        "Unemployed people aged 16 to 74: Aged 50 to 74"       
-# [15] "Unemployed people aged 16 to 74: Never worked"         "Unemployed people aged 16 to 74: Long-term unemployed"
-
-names(ecact_2011) <- c("output_area", "total", "pt", "ft", "se", "unemp", "ftstud", "retired", "student", "home", "sick", "other", "young", "old", "neverworked","ltunemp")
-
-ecact_2011 <- ecact_2011 %>% 
-  transmute(output_area, total, 
-            employed = ft + pt + se, 
-            unemployed = unemp, 
-            other = ftstud + retired + student + home + sick + other
-  )
-# > ecact_2011 %>% 
-#   mutate(t2 = employed + unemployed + other, check = total == t2)  %>% xtabs(~check, data = .)
-# check
-# TRUE 
-# 46351 
-
-write_csv(ecact_2001, path = "output_data/oa_harmonised/ecact_2001.csv")
-write_csv(ecact_2011, path = "output_data/oa_harmonised/ecact_2011.csv")
 
 
 
@@ -630,7 +565,7 @@ names(gh_2001) <- c("output_area", "total", "good", "fairly_good", "not_good")
 names(gh_2011) <- c("output_area", "total", "very_good", "good", "fair", "bad", "very_bad")
 
 gh_2001 <- gh_2001 %>% transmute(output_area, total, good = good + fairly_good, not_good)
-gh_2011 <- gh_2011 %>% transmute(output_area, total, good = good + very_good, not_good = fair + bad + very_bad)
+gh_2011 <- gh_2011 %>% transmute(output_area, total, good = good + very_good + fair, not_good = bad + very_bad)
 
 
 # > gh_2001 %>% mutate(t2 = good + not_good, check = total == t2) %>% xtabs(~check, data = .)
@@ -1067,6 +1002,151 @@ hh_2011_spo <- hh_2011 %>% transmute(
 
 write_csv(hh_2001_spo, path = "output_data/oa_harmonised/studentspensionersother_2001.csv")
 write_csv(hh_2011_spo, path = "output_data/oa_harmonised/studentspensionersother_2011.csv")
+
+
+
+#economic activity
+
+ea_2001 <- read_csv("output_data/unharmonised/economic_activity_2001.csv")
+ea_2011 <- read_csv("output_data/unharmonised/economic_activity_2011.csv")
+
+# > names(ea_2001)
+# [1] "output_area"                                     
+# [2] "ALL PEOPLE"                                      
+# [3] "Economically active"                             
+# [4] "   Employee total"                               
+# [5] "     Employee Part-time"                         
+# [6] "     Employee Full-time"                         
+# [7] "   Self-employed with employees total"           
+# [8] "     Self-employed with employees - Part-time"   
+# [9] "     Self-employed with employees - Full-time"   
+# [10] "   Self-employed without employees total"        
+# [11] "     Self-employed without employees - Part-time"
+# [12] "     Self-employed without employees - Full-time"
+# [13] "     Unemployed"                                 
+# [14] "     Full-time students"                         
+# [15] "Economically inactive"                           
+# [16] "     Retired"                                    
+# [17] "     Student"                                    
+# [18] "     Looking after home/family"                  
+# [19] "     Permanently sick/disabled"                  
+# [20] "     Other" 
+
+names(ea_2001) <- c(
+  "output_area",
+  "total",
+  "ecact",
+  "ecact_emp",
+  "ecact_emp_pt",
+  "ecact_emp_ft",
+  "ecact_selfwith",
+  "ecact_selfwith_pt",
+  "ecact_selfwith_ft",
+  "ecact_selfwout",
+  "ecact_selfwout_pt",
+  "ecact_selfwout_ft",
+  "ecact_unemp",
+  "ecact_student_ft",
+  "ecin",
+  "ecin_retired",
+  "ecin_student",
+  "ecin_homemaker",
+  "ecin_sick",
+  "ecin_other"
+  )
+
+# > names(ea_2011)
+# [1] "output_area"                                                    
+# [2] "All people aged 16 to 74"                                       
+# [3] "Economically active"                                            
+# [4] "Economically active: Employee: Part-time"                       
+# [5] "Economically active: Employee: Full-time"                       
+# [6] "Economically active: Self-employed with employees: Part-time"   
+# [7] "Economically active: Self-employed with employees: Full-time"   
+# [8] "Economically active: Self-employed without employees: Part-time"
+# [9] "Economically active: Self-employed without employees: Full-time"
+# [10] "Economically active: Unemployed"                                
+# [11] "Economically active: Full-time student"                         
+# [12] "Economically inactive"                                          
+# [13] "Economically inactive: Retired"                                 
+# [14] "Economically inactive: Student"                                 
+# [15] "Economically inactive: Looking after home or family"            
+# [16] "Economically inactive: Long-term sick or disabled"              
+# [17] "Economically inactive: Other"    
+
+names(ea_2011) <- c(
+  "output_area",
+  "total",
+  "ecact",
+  "ecact_emp_pt",
+  "ecact_emp_ft",
+  "ecact_self_pt_emp",
+  "ecact_self_ft_emp",
+  "ecact_self_pt_sole",
+  "ecact_self_ft_sole",
+  "ecact_unemp",
+  "ecact_student",
+  "ecinact",
+  "ecinact_retired",
+  "ecinact_student",
+  "ecinact_homemaker",
+  "ecinact_sick",
+  "ecinact_other"
+)
+
+
+# first way of dividing households: 
+# students, pensioners, everyone else
+
+ea_2001_harmonised <- ea_2001 %>% transmute(
+  output_area, total,
+  employed = ecact_emp + ecact_selfwith + ecact_selfwout,
+  unemployed = ecact_unemp,
+  student = ecact_student_ft + ecin_student,
+  retired = ecin_retired,
+  homemaker = ecin_homemaker,
+  sick = ecin_sick,
+  inactive_other = ecin_other
+) 
+
+
+ea_2011_harmonised <- ea_2011 %>% 
+  transmute(
+    output_area, total, 
+    employed = ecact_emp_pt + ecact_emp_ft + ecact_self_pt_emp + ecact_self_ft_emp + ecact_self_pt_sole + ecact_self_ft_sole,
+    unemployed = ecact_unemp,
+    student = ecact_student + ecinact_student,
+    retired = ecinact_retired,
+    homemaker = ecinact_homemaker,
+    sick = ecinact_sick,
+    inactive_other = ecinact_other
+  ) 
+
+
+write_csv(ea_2001_harmonised, path = "output_data/oa_harmonised/economic_activity_bigger_2001.csv")
+write_csv(ea_2011_harmonised, path = "output_data/oa_harmonised/economic_activity_bigger_2011.csv")
+
+
+
+# Now to produce a simpler version, just with economic activiy and economic inactivity
+
+ea_2001_harmonised_simple <- ea_2001 %>% transmute(
+  output_area, total,
+  active = ecact,
+  inactive = ecin
+) 
+
+
+ea_2011_harmonised_simple <- ea_2011 %>% 
+  transmute(
+    output_area, total, 
+    active = ecact,
+    inactive = ecinact
+    ) 
+
+
+write_csv(ea_2001_harmonised_simple, path = "output_data/oa_harmonised/economic_activity_simple_2001.csv")
+write_csv(ea_2011_harmonised_simple, path = "output_data/oa_harmonised/economic_activity_simple_2011.csv")
 
 
 
