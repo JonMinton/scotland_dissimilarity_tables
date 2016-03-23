@@ -24,14 +24,17 @@ minority_vars <- c(
   "not_good", "nonhouse", "higher", 
   "llti", "single", "none", "nonrlgs", 
   "nonscot", "nonwhite", "pensinr",
-  "student", "employd", "inactive"
+  "student", "employd", "inactive",
+  "owned"
   )
 
 minority_labels <- c(
   "Poor Health", "Non-house", "Grade 1 or 2", 
   "LLTI", "Single", "No Car", "Non-religious", 
   "Not Scottish", "Not White", "Pensioner",
-  "Student", "Employed", "Inactive")
+  "Student", "Employed", "Inactive",
+  "Home Owner"
+  )
 
 names(minority_labels) <- minority_vars
 
@@ -42,6 +45,16 @@ propchange <- dta %>%
   gather(key = index, value = value, -ttwa, -table, -year, -variable) %>% 
   spread(year, value) %>%
   mutate(change = (`2011` - `2001`) / `2001`) %>% 
+  select(ttwa, variable, index, change)
+
+
+
+pointchange <- dta %>% 
+  filter(variable %in% minority_vars) %>% 
+  mutate(variable = minority_labels[variable]) %>%  # This converts the variables to prettier names
+  gather(key = index, value = value, -ttwa, -table, -year, -variable) %>% 
+  spread(year, value) %>%
+  mutate(change = `2011` - `2001` ) %>% 
   select(ttwa, variable, index, change)
 
 
@@ -63,9 +76,94 @@ fn <- function(input){
   return(NULL)
 }
 
+
+
 wb <- createWorkbook()
 d_ply(propchange, .(variable), fn)
 saveWorkbook(wb, file = "tables/change_in_segs.xlsx")
+
+
+
+wb <- createWorkbook()
+d_ply(pointchange, .(variable), fn)
+saveWorkbook(wb, file = "tables/pointchange_in_segs.xlsx")
+
+
+
+
+# barcharts, 
+# for variables IS ETA2 ACO ACL ACE
+
+# For following clusters of measures
+
+# socioeconomic
+# SES
+# employed
+# car
+# home owners
+
+pointchange  %>% 
+  rename(City = ttwa) %>% 
+  filter(index %in% c("IS", "Eta2", "ACO", "ACL", "ACE"))  %>% 
+  filter(variable %in% c("Grade 1 or 2", "Employed", "No Car", "Home Owner"))  %>% 
+  ggplot(.) + 
+  geom_bar(aes( y = change, x = index, group = City, fill = City), stat = "identity", position = "dodge") + 
+  facet_wrap(~ variable) + 
+  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", main = "Socioeconomic change")
+
+ggsave("figures/bar_change_socioeconomic.png", width = 15, height = 10, dpi = 150, units = "cm")
+
+# ethnonational 
+# non white
+# non scottish
+# non religious
+
+pointchange  %>% 
+  rename(City = ttwa) %>% 
+  filter(index %in% c("IS", "Eta2", "ACO", "ACL", "ACE"))  %>% 
+  filter(variable %in% c("Not White", "Not Scottish", "Non-religious"))  %>% 
+  ggplot(.) + 
+  geom_bar(aes( y = change, x = index, group = City, fill = City), stat = "identity", position = "dodge") + 
+  facet_wrap(~ variable) + 
+  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", title = "Ethno-national Change")
+
+ggsave("figures/bar_change_ethnonational.png", width = 15, height = 10, dpi = 150, units = "cm")
+
+# demographic
+# student
+# single 
+# pensioner
+# self assessed health
+# llti
+
+pointchange  %>% 
+  rename(City = ttwa) %>% 
+  filter(index %in% c("IS", "Eta2", "ACO", "ACL", "ACE"))  %>% 
+  filter(variable %in% c("Student", "Pensioner", "Single", "Poor Health", "LLTI"))  %>% 
+  ggplot(.) + 
+  geom_bar(aes( y = change, x = index, group = City, fill = City), stat = "identity", position = "dodge") + 
+  facet_wrap(~ variable) + 
+  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", title = "Demographic Change")
+ggsave("figures/bar_change_demographic.png", width = 15, height = 10, dpi = 150, units = "cm")
+
+# build environment
+# house
+# car
+
+pointchange  %>% 
+  rename(City = ttwa) %>% 
+  filter(index %in% c("IS", "Eta2", "ACO", "ACL", "ACE"))  %>% 
+  filter(variable %in% c("Non-house", "No Car"))  %>% 
+  ggplot(.) + 
+  geom_bar(aes( y = change, x = index, group = City, fill = City), stat = "identity", position = "dodge") + 
+  facet_wrap(~ variable) + 
+  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", title = "Built Environment Change")
+
+ggsave("figures/bar_change_built.png", width = 15, height = 10, dpi = 150, units = "cm")
+
+# 
+
+
 
 
 
