@@ -21,16 +21,16 @@ dta <- read_excel(path = "geoseg_outputs/geoseg_outputs.xlsx", sheet = "tidy")
 
 
 minority_vars <- c(
-  "not_good", "nonhouse", "higher", 
-  "llti", "single", "none", "nonrlgs", 
+  "not_good", "nonhouse", "lower", 
+  "llti", "single", "some", "nonrlgs", 
   "nonscot", "nonwhite", "pensinr",
   "student", "employd", "inactive",
   "owned"
   )
 
 minority_labels <- c(
-  "Poor Health", "Non-house", "Grade 1 or 2", 
-  "LLTI", "Single", "No Car", "Non-religious", 
+  "Poor Health", "Non-house", "Grades 3 to 5", 
+  "LLTI", "Single", "Has Car", "Non-religious", 
   "Not Scottish", "Not White", "Pensioner",
   "Student", "Employed", "Inactive",
   "Home Owner"
@@ -105,13 +105,25 @@ saveWorkbook(wb, file = "tables/pointchange_in_segs.xlsx")
 pointchange  %>% 
   rename(City = ttwa) %>% 
   filter(index %in% c("IS", "Eta2", "ACO", "ACL", "ACE"))  %>% 
-  filter(variable %in% c("Grade 1 or 2", "Employed", "No Car", "Home Owner"))  %>% 
+  mutate(index = recode(
+    index, 
+    recodes = "
+  'IS' = 'More Uneven';
+  'Eta2' = 'More Isolated';
+  'ACO' = 'More Spatially Dense';
+  'ACL' = 'More Clustered';
+  'ACE' = 'More Central'
+", levels = c("More Uneven", "More Isolated", "More Spatially Dense", "More Clustered", "More Central")
+    )) %>% 
+  filter(variable %in% c("Grades 3 to 5", "Employed", "Has Car", "Home Owner"))  %>% 
   ggplot(.) + 
   geom_bar(aes( y = change, x = index, group = City, fill = City), stat = "identity", position = "dodge") + 
   facet_wrap(~ variable) + 
-  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", main = "Socioeconomic change")
+  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", main = "Socioeconomic change") +
+  theme(axis.text.x = element_text(angle = 90))
 
-ggsave("figures/bar_change_socioeconomic.png", width = 15, height = 10, dpi = 150, units = "cm")
+
+ggsave("figures/bar_change_socioeconomic.png", width = 15, height = 15, dpi = 150, units = "cm")
 
 # ethnonational 
 # non white
@@ -121,13 +133,24 @@ ggsave("figures/bar_change_socioeconomic.png", width = 15, height = 10, dpi = 15
 pointchange  %>% 
   rename(City = ttwa) %>% 
   filter(index %in% c("IS", "Eta2", "ACO", "ACL", "ACE"))  %>% 
+  mutate(index = recode(
+    index, 
+    recodes = "
+    'IS' = 'More Uneven';
+    'Eta2' = 'More Isolated';
+    'ACO' = 'More Spatially Dense';
+    'ACL' = 'More Clustered';
+    'ACE' = 'More Central'
+    ", levels = c("More Uneven", "More Isolated", "More Spatially Dense", "More Clustered", "More Central")
+  )) %>% 
   filter(variable %in% c("Not White", "Not Scottish", "Non-religious"))  %>% 
   ggplot(.) + 
   geom_bar(aes( y = change, x = index, group = City, fill = City), stat = "identity", position = "dodge") + 
   facet_wrap(~ variable) + 
-  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", title = "Ethno-national Change")
+  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", title = "Ethno-national Change") +
+  theme(axis.text.x = element_text(angle = 90))
 
-ggsave("figures/bar_change_ethnonational.png", width = 15, height = 10, dpi = 150, units = "cm")
+ggsave("figures/bar_change_ethnonational.png", width = 15, height = 12, dpi = 150, units = "cm")
 
 # demographic
 # student
@@ -139,12 +162,24 @@ ggsave("figures/bar_change_ethnonational.png", width = 15, height = 10, dpi = 15
 pointchange  %>% 
   rename(City = ttwa) %>% 
   filter(index %in% c("IS", "Eta2", "ACO", "ACL", "ACE"))  %>% 
-  filter(variable %in% c("Student", "Pensioner", "Single", "Poor Health", "LLTI"))  %>% 
+  mutate(index = recode(
+    index, 
+    recodes = "
+    'IS' = 'More Uneven';
+    'Eta2' = 'More Isolated';
+    'ACO' = 'More Spatially Dense';
+    'ACL' = 'More Clustered';
+    'ACE' = 'More Central'
+    ", levels = c("More Uneven", "More Isolated", "More Spatially Dense", "More Clustered", "More Central")
+  )) %>% 
+  filter(variable %in% c("Student", "Pensioner", "Single", "LLTI"))  %>% 
   ggplot(.) + 
   geom_bar(aes( y = change, x = index, group = City, fill = City), stat = "identity", position = "dodge") + 
   facet_wrap(~ variable) + 
-  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", title = "Demographic Change")
-ggsave("figures/bar_change_demographic.png", width = 15, height = 10, dpi = 150, units = "cm")
+  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", title = "Demographic Change") +
+  theme(axis.text.x = element_text(angle = 90))
+
+ggsave("figures/bar_change_demographic.png", width = 15, height = 15, dpi = 150, units = "cm")
 
 # build environment
 # house
@@ -152,14 +187,25 @@ ggsave("figures/bar_change_demographic.png", width = 15, height = 10, dpi = 150,
 
 pointchange  %>% 
   rename(City = ttwa) %>% 
-  filter(index %in% c("IS", "Eta2", "ACO", "ACL", "ACE"))  %>% 
-  filter(variable %in% c("Non-house", "No Car"))  %>% 
+  filter(index %in% c("IS", "Eta2", "ACO", "ACL", "ACE"))  %>%   
+  mutate(index = recode(
+    index, 
+    recodes = "
+  'IS' = 'More Uneven';
+  'Eta2' = 'More Isolated';
+  'ACO' = 'More Spatially Dense';
+  'ACL' = 'More Clustered';
+  'ACE' = 'More Central'
+", levels = c("More Uneven", "More Isolated", "More Spatially Dense", "More Clustered", "More Central")
+  )) %>% 
+  filter(variable %in% c("Non-house", "Has Car"))  %>% 
   ggplot(.) + 
   geom_bar(aes( y = change, x = index, group = City, fill = City), stat = "identity", position = "dodge") + 
   facet_wrap(~ variable) + 
-  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", title = "Built Environment Change")
+  labs(x = "Segregation measure", y = "Point change between 2001 and 2011", title = "Built Environment Change") +
+  theme(axis.text.x = element_text(angle = 90))
 
-ggsave("figures/bar_change_built.png", width = 15, height = 10, dpi = 150, units = "cm")
+ggsave("figures/bar_change_built.png", width = 15, height = 12, dpi = 150, units = "cm")
 
 # 
 
