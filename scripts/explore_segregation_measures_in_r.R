@@ -4,7 +4,8 @@ rm(list = ls())
 
 # trying out pacman package
 
-install.packages("pacman")
+#install.packages("pacman")
+require(pacman)
 
 pacman::p_load(
   readxl, xlsx, readr, spdep, 
@@ -16,29 +17,29 @@ pacman::p_load(
 #https://cran.r-project.org/web/packages/OasisR/OasisR.pdf
 
 # Load some kind of shapefile containing the attributes 
-
-dta <- readOGR(
-  dsn = "shapefiles_with_attributes/2grp_2001",
-  layer = "accom_2001"                     
-)    
-
-nhd_matrix <- nb2mat(
-  poly2nb(
-    dta, queen = FALSE),
-  style = "B",
-  zero.policy = T
-) # NOTE: Takes a while to calculate!
-
-
-
-# unevenness 
-
-dissim_oasis <- DI(dta@data[,c("house", "nonhouse")])
-
-d_adj_oasis <- Morill(dta@data[,c("house", "nonhouse")], nhd_matrix) 
-
-adj <- dissim_oasis - d_adj_oasis
-
+# 
+# dta <- readOGR(
+#   dsn = "shapefiles_with_attributes/2grp_2001",
+#   layer = "accom_2001"                     
+# )    
+# 
+# nhd_matrix <- nb2mat(
+#   poly2nb(
+#     dta, queen = FALSE),
+#   style = "B",
+#   zero.policy = T
+# ) # NOTE: Takes a while to calculate!
+# 
+# 
+# 
+# # unevenness 
+# 
+# dissim_oasis <- DI(dta@data[,c("house", "nonhouse")])
+# 
+# d_adj_oasis <- Morill(dta@data[,c("house", "nonhouse")], nhd_matrix) 
+# # THIS TAKES AGES!!!
+# adj <- dissim_oasis - d_adj_oasis
+# 
 
 # dissim_scores <- dissim(
 #   x = dta, 
@@ -50,33 +51,33 @@ adj <- dissim_oasis - d_adj_oasis
 # Fails for spatially adjusted measures 
 # because cannot handle empty neighbours 
 
-
-# isolation
-
-iso_scores2 <- OasisR::xPx(dta@data[,c("house", "nonhouse")])
-
-# Numbers match 
-
-# Adjusted isolation (Eta2)
-
-eta2 <- OasisR::Eta2(dta@data[,c("house", "nonhouse")])
-
-# centralisation
-
-# start with Glasgow accommodation
-
-dta <- readOGR(
-  dsn = "shapefiles_with_attributes/2grp_2001/ttwa",
-  layer = "Glasgow_accom_2001"                     
-)   
-
-distc <- distcenter(dta, center = 573)
-
-rce_glasgow <- RCE(
-  x = dta@data[,c("house", "nonhouse")],
-  dc = distc,
-  center = 573
-)
+# 
+# # isolation
+# 
+# iso_scores2 <- OasisR::xPx(dta@data[,c("house", "nonhouse")])
+# 
+# # Numbers match 
+# 
+# # Adjusted isolation (Eta2)
+# 
+# eta2 <- OasisR::Eta2(dta@data[,c("house", "nonhouse")])
+# 
+# # centralisation
+# 
+# # start with Glasgow accommodation
+# 
+# dta <- readOGR(
+#   dsn = "shapefiles_with_attributes/2grp_2001/ttwa",
+#   layer = "Glasgow_accom_2001"                     
+# )   
+# 
+# distc <- distcenter(dta, center = 573)
+# 
+# rce_glasgow <- RCE(
+#   x = dta@data[,c("house", "nonhouse")],
+#   dc = distc,
+#   center = 573
+# )
 
 
 # Automating/standardising the above 
@@ -132,16 +133,16 @@ get_simple_d <- function(x){
 
 get_adj_d <- function(x, y){
   counts_matrix <- x[,c(8, 9)]
-  output <- OasisR::Morill(counts_matrix, y)  
+  output <- OasisR::Morill(counts_matrix, y) %>% .[1]   
   return(output)
 }
 # Morill(dta@data[,c("house", "nonhouse")], nhd_matrix) 
-debug(get_adj_d)
 
-task_list %>% 
+
+task_list <- task_list %>% 
   mutate(
     d_simple = map_dbl(dta, get_simple_d),
-    d_adj = map2(dta, nhd, get_adj_d)
+    d_adj = map2_dbl(dta, nhd, get_adj_d)
   )
 
 # fn <- function(x){
