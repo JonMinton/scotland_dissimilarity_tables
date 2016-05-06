@@ -145,70 +145,90 @@ task_list <- task_list %>%
     d_adj = map2_dbl(dta, nhd, get_adj_d)
   )
 
-# fn <- function(x){
-#   dta <- readOGR(
-#     dsn = "shapefiles_with_attributes/2grp_2001",
-#     layer = "accom_2001"                     
-#   )    
-#   
-#   nhd_matrix <- nb2mat(
-#     poly2nb(
-#       dta, queen = FALSE),
-#     style = "B",
-#     zero.policy = T
-#   ) # NOTE: Takes a while to calculate!
-#   
-#   
-#   
-#   # unevenness 
-#   
-#   dissim_oasis <- DI(dta@data[,c("house", "nonhouse")])
-#   
-#   d_adj_oasis <- Morill(dta@data[,c("house", "nonhouse")], nhd_matrix) 
-#   
-#   adj <- dissim_oasis - d_adj_oasis
-#   
-#   
-#   # dissim_scores <- dissim(
-#   #   x = dta, 
-#   #   data = dta@data[,c("house", "nonhouse")],
-#   #   nb = nhd_matrix,
-#   #   adjust = T
-#   #   )
-#   
-#   # Fails for spatially adjusted measures 
-#   # because cannot handle empty neighbours 
-#   
-#   
-#   # isolation
-#   
-#   iso_scores2 <- OasisR::xPx(dta@data[,c("house", "nonhouse")])
-#   
-#   # Numbers match 
-#   
-#   # Adjusted isolation (Eta2)
-#   
-#   eta2 <- OasisR::Eta2(dta@data[,c("house", "nonhouse")])
-#   
-#   # centralisation
-#   
-#   # start with Glasgow accommodation
-#   
-#   dta <- readOGR(
-#     dsn = "shapefiles_with_attributes/2grp_2001/ttwa",
-#     layer = "Glasgow_accom_2001"                     
-#   )   
-#   
-#   distc <- distcenter(dta, center = 573)
-#   
-#   rce_glasgow <- RCE(
-#     x = dta@data[,c("house", "nonhouse")],
-#     dc = distc,
-#     center = 573
-#   )
-#   
-#   
-#   
-# }
-# 
-#   
+task_list <- task_list %>% 
+  mutate(adj = d_simple - d_adj)
+
+get_xPx <- function(x){
+  counts_matrix <- x[,c(8, 9)]
+  output <- OasisR::xPx(counts_matrix) 
+  return(output)
+}
+
+
+task_list <- task_list %>% 
+  mutate(xPx = map(dta, get_xPx)) %>% 
+  mutate(
+    xPx_1 = map_dbl(xPx, ~ .[1]), 
+    xPx_2 = map_dbl(xPx, ~ .[2])
+    ) %>% 
+  select(-xPx)
+
+
+get_Eta2 <- function(x){
+  counts_matrix <- x[,c(8, 9)]
+  output <- OasisR::Eta2(counts_matrix) %>% .[1]
+  return(output)
+}
+
+task_list <- task_list %>% 
+  mutate(Eta2 = map_dbl(dta, get_Eta2)) 
+
+get_rce <- function(dta, shp){
+  counts_matrix <- dta[,c(8, 9)]
+  cntr <- which(dta$centre == 1)
+  distc <- distcenter(shp, center = cntr)
+  rce <- RCE(
+      x = counts_matrix,
+      dc = distc,
+      center = cntr
+    )
+  output <- rce[2,1]
+  return(output)
+}
+
+task_list <- task_list %>% 
+  mutate(rce = map2_dbl(dta, shp, get_rce)) 
+
+simple_results <- task_list %>% 
+  select(place, attribute, year, 
+         evenness = d_simple, clustering = adj, isolation = Eta2, centralisation = rce) %>% 
+  gather(key = "dimension", value = "value", evenness:centralisation)
+
+
+# Now how best to represent this? 
+
+simple_results %>% 
+  ggplot(., 
+         aes(
+           y = value, x = place, 
+           group = factor(year), colour = NULL, fill = factor(year)
+           )
+         ) +
+  facet_grid(attribute ~ dimension, scale = "free") + 
+  geom_bar(stat = "identity", position = "dodge")
+
+
+
+# Change from 2001 to 2011
+
+simple_results %>% 
+  spread(year, value) %>% 
+  mutate(
+    point_change = `2011` - `2001`,
+    prop_change = (`2011` - `2001`) / `2001`
+    ) %>% 
+  ggplot(.,
+         aes( y = point_change, x = dimension, group = place, fill = place)
+         ) + 
+  facet_wrap( ~ attribute, scale = "free") + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  geom_hline(aes(yintercept = 0)) + 
+  labs(
+    title = "Point change in segregations from 2001 to 2011",
+    x = "Dimension", y = "Point change in segregation\nscore from 2001 to 2011")
+
+ggsave("figures/point_change_segregations.png", width = 40, height = 30, dpi = 300, units = "cm")
+
+
+
+
