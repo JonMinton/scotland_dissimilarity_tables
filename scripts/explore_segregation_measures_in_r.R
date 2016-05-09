@@ -247,8 +247,9 @@ task_list <- task_list %>%
 
 simple_results <- task_list %>% 
   select(place, attribute, year, 
-         evenness = d_simple, 
-         clustering = adj, 
+         attribute_label = att_label_1,
+         evenness = d_simple_1, 
+         clustering = adj_1, 
          isolation = Eta2, 
          centralisation = rce, 
          concentration = rcon
@@ -256,45 +257,8 @@ simple_results <- task_list %>%
   gather(key = "dimension", value = "value", evenness:concentration)
 
 
-minority_vars <- c(
-  "accom", 
-  "car",
-  "cob", 
-  "employed",
-  "eth",
-  "generalhealth",
-  "homeowners",
-  "inactive",
-  "llti",
-  "maritalstatus",
-  "nssec",
-  "pensioners",
-  "religion", 
-  "students"
-)
-
-minority_labels <- c(
-  "Non-house",
-  "Has Car",
-  "Not Scottish",
-  "Employed",
-  "Not White",
-  "Poor Health",
-  "Home Owner",
-  "Inactive",
-  "LLTI",
-  "Single",
-  "Grades 1 and 2",
-  "Pensioner",
-  "Non-religious",
-  "Student"
-)
-
-
-names(minority_labels) <- minority_vars
 
 simple_results <- simple_results %>% 
-  mutate(pretty_label = minority_labels[attribute]) %>% 
   mutate(dimension = factor(
     dimension, 
     levels = c(
@@ -328,7 +292,7 @@ simple_results %>%
   ggplot(.,
          aes( y = point_change, x = dimension, group = place, fill = place)
          ) + 
-  facet_wrap( ~ pretty_label) + 
+  facet_wrap( ~ attribute_label) + 
   geom_bar(stat = "identity", position = "dodge") + 
   geom_hline(aes(yintercept = 0)) +
   coord_cartesian(ylim = c(-0.2, 0.2)) + 
@@ -354,6 +318,17 @@ simple_results %>%
   stat_smooth(method = "lm", se = F)
 
   
+## TO DO: scatterplot of each attribute against each other attribute
+
+
+
+
+
+
+
+
+
+
 simple_results %>% 
   spread(year, value) %>% 
   mutate(
