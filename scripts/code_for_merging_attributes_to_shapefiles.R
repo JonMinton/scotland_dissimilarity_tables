@@ -98,7 +98,8 @@ l_ply(att_files, fn, .progress = "text")
 
 # produce separate shapfiles for separate TTWAs ---------------------------
 
-ttwas <- c("Aberdeen", "Glasgow", "Edinburgh", "Dundee")
+ttwas <- c("Aberdeen", "Glasgow", "Edinburgh", "Dundee", 
+           "Inverness and Dingwall", "Perth and Blairgowrie", "Stirling and Alloa")
 
 att_files <- dir("output_data/dz_2001/binary")
 combinations <- expand.grid(attributes = att_files, ttwa = ttwas)
@@ -135,12 +136,32 @@ ttwa <- read_csv(file = "input_data/lookups/LSOA01_TTWA01_UK_LU.csv", col_types 
 # DD1 2AJ
 # S01001101
 
+# Perth 
+# - South Street
+# PH2 8PA
+# S01005037
+
+# Inverness 
+# - High Street/Castle Street
+# IV1 1HY
+# S01003853
+
+# Stirling
+# Port Street
+# FK8 2LJ
+# S01006120
+
+
+
 ttwa_centroids <- c(
   Aberdeen = "S01000125",
   Glasgow = "S01003358",
   Edinburgh = "S01002131", 
-  Dundee = "S01001101"
-)
+  Dundee = "S01001101",
+  `Inverness and Dingwall` = "S01003853",
+  `Perth and Blairgowrie` = "S01005037",
+  `Stirling and Alloa` = "S01006120"
+  )
 
 
 fn <- function(x){
