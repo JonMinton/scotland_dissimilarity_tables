@@ -132,7 +132,7 @@ get_simple_d_and_names <- function(x){
     attribute_names = attribute_names, 
     simple_d_1 = dissim[2,1],
     simple_d_2 = dissim[1,2]
-    )
+  )
   return(output)
 }
 # Calculate indices for each separately 
@@ -156,7 +156,7 @@ task_list <- task_list %>%
     d_simple_2 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_2"]]),
     att_label_1 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][1]), 
     att_label_2 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][2])
-    ) %>% 
+  ) %>% 
   select(-d_simple_and_att_names, d_adj_both)
 
 
@@ -164,8 +164,8 @@ task_list <- task_list %>%
   mutate(
     adj_1 = d_simple_1 - d_adj_1,
     adj_2 = d_simple_2 - d_adj_2
-         
-         )
+    
+  )
 
 get_xPx <- function(x){
   counts_matrix <- x[,c(8, 9)]
@@ -179,7 +179,7 @@ task_list <- task_list %>%
   mutate(
     xPx_1 = map_dbl(xPx, ~ .[1]), 
     xPx_2 = map_dbl(xPx, ~ .[2])
-    ) %>% 
+  ) %>% 
   select(-xPx)
 
 
@@ -197,10 +197,10 @@ get_rce <- function(dta, shp){
   cntr <- which(dta$centre == 1)
   distc <- distcenter(shp, center = cntr)
   rce <- RCE(
-      x = counts_matrix,
-      dc = distc,
-      center = cntr
-    )
+    x = counts_matrix,
+    dc = distc,
+    center = cntr
+  )
   output <- rce[2,1]
   return(output)
 }
@@ -230,7 +230,7 @@ get_rcon <- function(dta, shp){
     }
     return(result)
   }
-
+  
   dens <- tmap::calc_densities(shp, var = "total")
   
   counts_matrix <- dta[,c(8, 9)]
@@ -253,7 +253,7 @@ simple_results <- task_list %>%
          isolation = Eta2, 
          centralisation = rce, 
          concentration = rcon
-         ) %>% 
+  ) %>% 
   gather(key = "dimension", value = "value", evenness:concentration)
 
 
@@ -264,8 +264,8 @@ simple_results <- simple_results %>%
     levels = c(
       "evenness", "isolation", "clustering", 
       "centralisation", "concentration")
-    )
-    )
+  )
+  )
 
 # Now how best to represent this? 
 
@@ -288,10 +288,10 @@ simple_results %>%
   mutate(
     point_change = `2011` - `2001`,
     prop_change = (`2011` - `2001`) / `2001`
-    ) %>% 
+  ) %>% 
   ggplot(.,
          aes( y = point_change, x = dimension, group = place, fill = place)
-         ) + 
+  ) + 
   facet_wrap( ~ attribute_label) + 
   geom_bar(stat = "identity", position = "dodge") + 
   geom_hline(aes(yintercept = 0)) +
@@ -314,10 +314,10 @@ simple_results %>%
   qplot(
     data = ., 
     x = `2001`, y = point_change, colour = dimension, group = dimension
-    ) +
+  ) +
   stat_smooth(method = "lm", se = F)
 
-  
+
 ## TO DO: scatterplot of each attribute against each other attribute
 
 
