@@ -11,7 +11,7 @@ pacman::p_load(
   readxl, xlsx, readr, spdep, 
   maptools, rgdal, car, stringr, 
   purrr, tidyr, dplyr, seg, OasisR,
-  ggplot2, tmap
+  ggplot2, lattice, tmap
 )
 
 #https://cran.r-project.org/web/packages/OasisR/OasisR.pdf
@@ -266,6 +266,88 @@ simple_results <- simple_results %>%
       "centralisation", "concentration")
   )
   )
+
+
+# Using splot within lattice
+#http://www.statmethods.net/graphs/scatterplot.html
+
+simple_results  %>% spread(dimension, value)  -> tmp
+
+
+# By year
+super.sym <- trellis.par.get("superpose.symbol")
+splom(~tmp[5:9], groups = year, data = tmp,
+      panel = panel.superpose,
+      key = list(title = "Year",
+                 columns = 2, 
+                 points = list(pch = super.sym$pch[1:2],
+                               col = super.sym$col[1:2]),
+                 text = list(c("2001", "2011"))))
+
+# By attribute - too many - max should be seven
+splom(~tmp[5:9], groups = attribute_label, data = tmp,
+      panel = panel.superpose,
+      key = list(title = "Year",
+                 columns = 14,
+                 points = list(pch = super.sym$pch[1:14],
+                               col = super.sym$col[1:14]),
+                 text = list(unique(tmp$attribute_label))))
+
+# By place - 
+splom(~tmp[5:9], groups = place, data = tmp,
+      panel = panel.superpose,
+      key = list(title = "Year",
+                 columns = 3, rows = 3,
+                 points = list(pch = super.sym$pch[1:7],
+                               col = super.sym$col[1:7]),
+                 text = list(unique(tmp$place))))
+
+
+# Now differences from 2001 to 2011
+
+simple_results  %>% 
+  spread(year, value)  %>% 
+  mutate(change = `2011` - `2001`)  %>% 
+  select(-`2001`, -`2011`)  %>% 
+  spread(dimension, change)  -> tmp2
+
+# By place - 
+
+splom(~tmp2[4:8], groups = place, data = tmp2,
+      panel = panel.superpose,
+      key = list(title = "TTWA",
+                 columns = 3, rows = 3,
+                 points = list(pch = super.sym$pch[1:7],
+                               col = super.sym$col[1:7]),
+                 text = list(unique(tmp2$place))))
+
+# by attribute - socioeconomic 
+
+# socioeconomic
+
+tmp3 <- tmp2 %>% 
+  filter(attribute %in% c("employed", "car", "nssec", "homeowners"))
+splom(~tmp3[4:8], groups = place, data = tmp3,
+      panel = panel.superpose,
+      key = list(title = "Socioeconomic attribute",
+                 columns = 2, rows = 2,
+                 points = list(pch = super.sym$pch[1:4],
+                               col = super.sym$col[1:4]),
+                 text = list(unique(tmp3$attribute_label))))
+
+
+# ethnosomethingism 
+
+
+tmp3 <- tmp2 %>% 
+  filter(attribute %in% c("eth", "cob", "religion"))
+splom(~tmp3[4:8], groups = place, data = tmp3,
+      panel = panel.superpose,
+      key = list(title = "Ethnosomethingist attribute",
+                 columns = 3,
+                 points = list(pch = super.sym$pch[1:3],
+                               col = super.sym$col[1:3]),
+                 text = list(unique(tmp3$attribute_label))))
 
 # Now how best to represent this? 
 
