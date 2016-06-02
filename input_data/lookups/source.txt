@@ -1,3 +1,18 @@
 https://data.gov.uk/dataset/lower-layer-super-output-areas-2001-to-travel-to-work-areas-2001-uk-lookup
 
 accessed 7/3/2016
+
+source for 2011 ttwas: 
+
+travel-to-work-areas-2011-to-travel-to-work-areas-2011-revised-uk-aug-2015-lookup 
+(zip file, from data.gov.uk?)
+ - currently on dropbox -
+ data/travel_to_work_lookup/2011_dzs
+ 
+
+POSTCODE_TO_OA and OA_TO_HIGHER_AREAS are both from 
+http://www.nrscotland.gov.uk/statistics-and-data/geography/our-products/census-datasets/2011-census/2011-indexes
+
+# Accessed 2/6/ 2016
+
+ 
