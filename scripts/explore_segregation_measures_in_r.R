@@ -82,7 +82,7 @@ pacman::p_load(
 
 # Automating/standardising the above 
 
-fls <- list.files("shapefiles_with_attributes/2grp_2001/ttwa", "\\.shp$")
+fls <- list.files("shapefiles_with_attributes/2grp_2011/ttwa", "\\.shp$")
 
 task_list <- data_frame(filename =fls) %>% 
   mutate(tmp = str_replace(filename, "\\.shp$", "")) %>% 
@@ -95,7 +95,7 @@ task_list <- data_frame(filename =fls) %>%
 get_shapefiles <- function(filename){
   filename_short <- str_replace(filename, "\\.shp$", "")
   this_shp <- readOGR(
-    dsn = "shapefiles_with_attributes/2grp_2001/ttwa",
+    dsn = "shapefiles_with_attributes/2grp_2011/ttwa",
     layer = filename_short
   )
   
