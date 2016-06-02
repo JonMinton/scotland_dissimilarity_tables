@@ -15,75 +15,75 @@ pacman::p_load(
 )
 
 load("rdata/shapefiles_in_dataframe.RData")
-# fls <- list.files("shapefiles_with_attributes/2grp_2011/ttwa", "\\.shp$")
-# 
-# task_list <- data_frame(filename =fls) %>% 
-#   mutate(tmp = str_replace(filename, "\\.shp$", "")) %>% 
-#   separate(tmp, into = c("place", "attribute", "year"), sep = "_")
-# 
-# 
-# # First, create a function which saves each shapefile into an element of a not-quite dataframe
-# 
-# 
-# get_shapefiles <- function(filename){
-#   filename_short <- str_replace(filename, "\\.shp$", "")
-#   this_shp <- readOGR(
-#     dsn = "shapefiles_with_attributes/2grp_2011/ttwa",
-#     layer = filename_short
-#   )
-#   
-#   return(this_shp)
-# }
-# 
-# task_list <- task_list %>% 
-#   mutate(shp = map(filename, get_shapefiles)) 
+
+
+fls <- list.files("shapefiles_with_attributes/2grp_2011/ttwa", "\\.shp$")
+
+task_list <- data_frame(filename =fls) %>%
+  mutate(tmp = str_replace(filename, "\\.shp$", "")) %>%
+  separate(tmp, into = c("place", "attribute", "year"), sep = "_")
+
+
+# First, create a function which saves each shapefile into an element of a not-quite dataframe
+
+
+get_shapefiles <- function(filename){
+  filename_short <- str_replace(filename, "\\.shp$", "")
+  this_shp <- readOGR(
+    dsn = "shapefiles_with_attributes/2grp_2011/ttwa",
+    layer = filename_short
+  )
+  
+  return(this_shp)
+}
+
+task_list <- task_list %>%
+  mutate(shp = map(filename, get_shapefiles))
 
 
 # extract data portion of each object
-task_list <- task_list %>% 
-  mutate(dta = map(shp, ~ slot(., "data"))) 
+task_list <- task_list %>%
+  mutate(dta = map(shp, ~ slot(., "data")))
 
 # Now neighbourhood matrix
 
 get_nhd <- function(x){
   
-  output <- x %>% 
+  output <- x %>%
     poly2nb(., queen = FALSE) %>%
     nb2mat(., style = "B", zero.policy = T)
   return(output)
 }
 
-task_list <- task_list %>% 
-  mutate(nhd = map(shp, get_nhd)) 
+task_list <- task_list %>%
+  mutate(nhd = map(shp, get_nhd))
 
-save(task_list, file = "rdata/shapefiles_in_dataframe.RData")
-
-
-# Now to add the measures one by one 
+# Now to add the measures one by one
 
 get_simple_d_and_names <- function(x){
-  attribute_names <- names(x)[c(8, 9)]
-  counts_matrix <- x[,c(8, 9)]
+  attribute_names <- names(x)[c(12, 13)]
+  counts_matrix <- x[,c(12, 13)]
   dissim <- OasisR::DI(counts_matrix)
   output <- list(
-    attribute_names = attribute_names, 
+    attribute_names = attribute_names,
     simple_d_1 = dissim[2,1],
     simple_d_2 = dissim[1,2]
   )
   return(output)
 }
-# Calculate indices for each separately 
+# Calculate indices for each separately
 
 get_adj_d <- function(x, y){
-  counts_matrix <- x[,c(8, 9)]
-  outputs <- OasisR::Morill(counts_matrix, y)   
+  counts_matrix <- x[,c(12, 13)]
+  outputs <- OasisR::Morill(counts_matrix, y)
   return(outputs)
 }
-# Morill(dta@data[,c("house", "nonhouse")], nhd_matrix) 
+# Morill(dta@data[,c("house", "nonhouse")], nhd_matrix)
 
 
 
-task_list <- task_list %>% 
+
+task_list <- task_list %>%
   mutate(
     d_simple_and_att_names = map(dta, get_simple_d_and_names),
     d_adj_both = map2(dta, nhd, get_adj_d),
@@ -91,13 +91,26 @@ task_list <- task_list %>%
     d_adj_2 = map_dbl(d_adj_both, ~ .[2]),
     d_simple_1 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_1"]]),
     d_simple_2 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_2"]]),
-    att_label_1 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][1]), 
+    att_label_1 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][1]),
     att_label_2 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][2])
-  ) %>% 
+  ) %>%
+  select(-d_simple_and_att_names, d_adj_both)
+
+task_list <- task_list %>%
+  mutate(
+    d_simple_and_att_names = map(dta, get_simple_d_and_names),
+    d_adj_both = map2(dta, nhd, get_adj_d),
+    d_adj_1 = map_dbl(d_adj_both, ~ .[1]),
+    d_adj_2 = map_dbl(d_adj_both, ~ .[2]),
+    d_simple_1 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_1"]]),
+    d_simple_2 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_2"]]),
+    att_label_1 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][1]),
+    att_label_2 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][2])
+  ) %>%
   select(-d_simple_and_att_names, d_adj_both)
 
 
-task_list <- task_list %>% 
+task_list <- task_list %>%
   mutate(
     adj_1 = d_simple_1 - d_adj_1,
     adj_2 = d_simple_2 - d_adj_2
@@ -105,32 +118,32 @@ task_list <- task_list %>%
   )
 
 get_xPx <- function(x){
-  counts_matrix <- x[,c(8, 9)]
-  output <- OasisR::xPx(counts_matrix) 
+  counts_matrix <- x[,c(12, 13)]
+  output <- OasisR::xPx(counts_matrix)
   return(output)
 }
 
 
-task_list <- task_list %>% 
-  mutate(xPx = map(dta, get_xPx)) %>% 
+task_list <- task_list %>%
+  mutate(xPx = map(dta, get_xPx)) %>%
   mutate(
-    xPx_1 = map_dbl(xPx, ~ .[1]), 
+    xPx_1 = map_dbl(xPx, ~ .[1]),
     xPx_2 = map_dbl(xPx, ~ .[2])
-  ) %>% 
+  ) %>%
   select(-xPx)
 
 
 get_Eta2 <- function(x){
-  counts_matrix <- x[,c(8, 9)]
+  counts_matrix <- x[,c(12, 13)]
   output <- OasisR::Eta2(counts_matrix) %>% .[1]
   return(output)
 }
 
-task_list <- task_list %>% 
-  mutate(Eta2 = map_dbl(dta, get_Eta2)) 
+task_list <- task_list %>%
+  mutate(Eta2 = map_dbl(dta, get_Eta2))
 
 get_rce <- function(dta, shp){
-  counts_matrix <- dta[,c(8, 9)]
+  counts_matrix <- dta[,c(12, 13)]
   cntr <- which(dta$centre == 1)
   distc <- distcenter(shp, center = cntr)
   rce <- RCE(
@@ -142,8 +155,8 @@ get_rce <- function(dta, shp){
   return(output)
 }
 
-task_list <- task_list %>% 
-  mutate(rce = map2_dbl(dta, shp, get_rce)) 
+task_list <- task_list %>%
+  mutate(rce = map2_dbl(dta, shp, get_rce))
 
 
 # Bespoke concentration measure using same approach as RCE
@@ -155,7 +168,7 @@ get_rcon <- function(dta, shp){
     result <- matrix(data = 0, nrow = ncol(x), ncol = ncol(x))
     varTotal <- colSums(x)
     xprovi <- cbind(x, dens)
-    xprovi <- xprovi[order(xprovi[, ncol(xprovi)], decreasing = T), ] 
+    xprovi <- xprovi[order(xprovi[, ncol(xprovi)], decreasing = T), ]
     # highest to lowest density, so should be decreasing
     xprovi <- as.data.frame(xprovi)
     for (k1 in 1:ncol(x)) for (k2 in 1:ncol(x)) {
@@ -170,14 +183,16 @@ get_rcon <- function(dta, shp){
   
   dens <- tmap::calc_densities(shp, var = "total")
   
-  counts_matrix <- dta[,c(8, 9)]
+  counts_matrix <- dta[,c(12, 13)]
   output <- rcon(counts_matrix, dens) %>% .[2, 1]
   return(output)
 }
 
-task_list <- task_list %>% 
+task_list <- task_list %>%
   mutate(rcon = map2_dbl(dta, shp, get_rcon))
 
+
+save(task_list, file = "rdata/shapefiles_in_dataframe.RData")
 
 
 
