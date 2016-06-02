@@ -14,29 +14,30 @@ pacman::p_load(
   ggplot2, lattice, tmap
 )
 
+load("rdata/shapefiles_in_dataframe.RData")
+# fls <- list.files("shapefiles_with_attributes/2grp_2011/ttwa", "\\.shp$")
+# 
+# task_list <- data_frame(filename =fls) %>% 
+#   mutate(tmp = str_replace(filename, "\\.shp$", "")) %>% 
+#   separate(tmp, into = c("place", "attribute", "year"), sep = "_")
+# 
+# 
+# # First, create a function which saves each shapefile into an element of a not-quite dataframe
+# 
+# 
+# get_shapefiles <- function(filename){
+#   filename_short <- str_replace(filename, "\\.shp$", "")
+#   this_shp <- readOGR(
+#     dsn = "shapefiles_with_attributes/2grp_2011/ttwa",
+#     layer = filename_short
+#   )
+#   
+#   return(this_shp)
+# }
+# 
+# task_list <- task_list %>% 
+#   mutate(shp = map(filename, get_shapefiles)) 
 
-fls <- list.files("shapefiles_with_attributes/2grp_2011/ttwa", "\\.shp$")
-
-task_list <- data_frame(filename =fls) %>% 
-  mutate(tmp = str_replace(filename, "\\.shp$", "")) %>% 
-  separate(tmp, into = c("place", "attribute", "year"), sep = "_")
-
-
-# First, create a function which saves each shapefile into an element of a not-quite dataframe
-
-
-get_shapefiles <- function(filename){
-  filename_short <- str_replace(filename, "\\.shp$", "")
-  this_shp <- readOGR(
-    dsn = "shapefiles_with_attributes/2grp_2011/ttwa",
-    layer = filename_short
-  )
-  
-  return(this_shp)
-}
-
-task_list <- task_list %>% 
-  mutate(shp = map(filename, get_shapefiles)) 
 
 # extract data portion of each object
 task_list <- task_list %>% 
@@ -54,6 +55,9 @@ get_nhd <- function(x){
 
 task_list <- task_list %>% 
   mutate(nhd = map(shp, get_nhd)) 
+
+save(task_list, file = "rdata/shapefiles_in_dataframe.RData")
+
 
 # Now to add the measures one by one 
 
