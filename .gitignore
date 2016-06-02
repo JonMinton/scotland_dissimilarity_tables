@@ -3,3 +3,4 @@
 .RData
 shapefiles/*
 shapefiles_with_attributes/*
+rdata/*
