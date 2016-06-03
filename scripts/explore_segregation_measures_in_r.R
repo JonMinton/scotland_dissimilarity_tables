@@ -251,14 +251,31 @@ splom(~tmp2[4:8], groups = place, data = tmp2,
         panel.xyplot(x, y, ...)
         panel.loess(x, y, ...)
         panel.lmline(x, y, ...)
-        },
+      },
       key = list(title = "TTWA",
                  columns = 3, rows = 3,
                  points = list(pch = super.sym$pch[1:7],
                                col = super.sym$col[1:7]),
                  text = list(unique(tmp2$place)))
       
-      )
+)
+
+
+# Now to iteratively subset across each attribute
+
+little_splommer <- function(x, subgroup){
+  xx <- x %>% filter(attribute == subgroup)
+  
+  p <- splom(~xx[4:8], data = tmp2,
+             panel = function(x, y, ...) { 
+               panel.xyplot(x, y, ...)
+             },
+             title = subgroup
+  )
+  p2 <- print(p)
+  p2
+}
+
 
 # by attribute - socioeconomic 
 
@@ -266,7 +283,7 @@ splom(~tmp2[4:8], groups = place, data = tmp2,
 
 tmp3 <- tmp2 %>% 
   filter(attribute %in% c("employed", "car", "nssec", "homeowners"))
-splom(~tmp3[4:8], groups = place, data = tmp3,
+splom(~tmp3[4:8], groups = attribute, data = tmp3,
       panel = panel.superpose,
       key = list(title = "Socioeconomic attribute",
                  columns = 2, rows = 2,
@@ -280,13 +297,17 @@ splom(~tmp3[4:8], groups = place, data = tmp3,
 
 tmp3 <- tmp2 %>% 
   filter(attribute %in% c("eth", "cob", "religion"))
-splom(~tmp3[4:8], groups = place, data = tmp3,
+splom(~tmp3[4:8], groups = attribute, data = tmp3,
       panel = panel.superpose,
       key = list(title = "Ethnosomethingist attribute",
                  columns = 3,
                  points = list(pch = super.sym$pch[1:3],
                                col = super.sym$col[1:3]),
                  text = list(unique(tmp3$attribute_label))))
+
+
+
+
 
 # Now how best to represent this? 
 
@@ -423,3 +444,8 @@ simple_results %>%
     title = "Point change in segregations from 2001 to 2011",
     x = "Dimension", y = "Point change in segregation\nscore from 2001 to 2011") + 
   theme(axis.text.x = element_text(angle = 90))
+
+
+
+
+
