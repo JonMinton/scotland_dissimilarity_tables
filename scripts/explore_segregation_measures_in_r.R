@@ -227,14 +227,22 @@ simple_results  %>% spread(dimension, value)  -> tmp
 
 
 # By year
+
+png(filename = "figures/scatterplot_year.png", width= 30, height = 30, units = "cm", res = 300)
+
 super.sym <- trellis.par.get("superpose.symbol")
-splom(~tmp[5:9], groups = year, data = tmp,
+p <- splom(~tmp[5:9], groups = year, data = tmp,
       panel = panel.superpose,
-      key = list(title = "Year",
+      key = list(title = "Values in 2001 and 2011",
                  columns = 2, 
                  points = list(pch = super.sym$pch[1:2],
                                col = super.sym$col[1:2]),
                  text = list(c("2001", "2011"))))
+
+print(p)
+dev.off()
+p
+
 
 # Now differences from 2001 to 2011
 
@@ -246,35 +254,48 @@ simple_results  %>%
 
 # By place - 
 
-splom(~tmp2[4:8], groups = place, data = tmp2,
+png(filename = "figures/scatterplot_change_ttwa.png", width= 30, height = 30, units = "cm", res = 300)
+
+trellis.par.set("superpose.symbol", list(pch = 0:6))
+super.sym <- trellis.par.get("superpose.symbol")
+
+p <- splom(~tmp2[4:8], groups = place, data = tmp2,
       panel = function(x, y, ...) { 
-        panel.xyplot(x, y, ...)
+        panel.xyplot(x, y,  ...)
         panel.loess(x, y, ...)
         panel.lmline(x, y, ...)
       },
-      key = list(title = "TTWA",
-                 columns = 3, rows = 3,
+      key = list(title = "Values by TTWA",
+                 columns = 4, rows = 2,
                  points = list(pch = super.sym$pch[1:7],
                                col = super.sym$col[1:7]),
                  text = list(unique(tmp2$place)))
       
 )
 
+print(p)
+dev.off()
+p
 
-# Now to iteratively subset across each attribute
 
-little_splommer <- function(x, subgroup){
-  xx <- x %>% filter(attribute == subgroup)
-  
-  p <- splom(~xx[4:8], data = tmp2,
-             panel = function(x, y, ...) { 
-               panel.xyplot(x, y, ...)
-             },
-             title = subgroup
-  )
-  p2 <- print(p)
-  p2
-}
+# Show all on one very complex figure
+
+png("figures/scatter_all_attributes.png", width = 60, height = 60, units = "cm", res = 300)
+
+trellis.par.set("superpose.symbol", list(pch = 0:6))
+super.sym <- trellis.par.get("superpose.symbol")
+
+splom(~tmp2[4:8] | attribute, groups = place, data = tmp2,
+      key = list(title = "Values by TTWA",
+                 columns = 4, rows = 2,
+                 points = list(pch = super.sym$pch[1:7],
+                               col = super.sym$col[1:7]),
+                 text = list(unique(tmp2$place)))
+      
+      )
+dev.off()
+
+
 
 
 # by attribute - socioeconomic 
@@ -283,29 +304,120 @@ little_splommer <- function(x, subgroup){
 
 tmp3 <- tmp2 %>% 
   filter(attribute %in% c("employed", "car", "nssec", "homeowners"))
+
+trellis.par.set("superpose.symbol", list(pch = 0:3))
+super.sym <- trellis.par.get("superpose.symbol")
+
+png("figures/scatter_socioeconomic.png", width = 30, height = 30, res = 300, units = "cm")
 splom(~tmp3[4:8], groups = attribute, data = tmp3,
       panel = panel.superpose,
       key = list(title = "Socioeconomic attribute",
                  columns = 2, rows = 2,
                  points = list(pch = super.sym$pch[1:4],
                                col = super.sym$col[1:4]),
-                 text = list(unique(tmp3$attribute_label))))
+                 text = list(unique(tmp3$attribute))))
+
+dev.off()
 
 
 # ethnosomethingism 
 
-
 tmp3 <- tmp2 %>% 
   filter(attribute %in% c("eth", "cob", "religion"))
+
+trellis.par.set("superpose.symbol", list(pch = 0:2))
+super.sym <- trellis.par.get("superpose.symbol")
+
+png("figures/scatter_ethnoreligious.png", width = 30, height = 30, res = 300, units = "cm")
+
 splom(~tmp3[4:8], groups = attribute, data = tmp3,
       panel = panel.superpose,
-      key = list(title = "Ethnosomethingist attribute",
+      key = list(title = "Ethnoreligious",
                  columns = 3,
                  points = list(pch = super.sym$pch[1:3],
                                col = super.sym$col[1:3]),
                  text = list(unique(tmp3$attribute_label))))
+dev.off()
+
+tmp3 <- tmp2 %>% 
+  filter(attribute %in% c("eth", "cob", "religion"))
+
+trellis.par.set("superpose.symbol", list(pch = 0:2))
+super.sym <- trellis.par.get("superpose.symbol")
+
+png("figures/scatter_ethnoreligious.png", width = 30, height = 30, res = 300, units = "cm")
+
+splom(~tmp3[4:8], groups = attribute, data = tmp3,
+      panel = panel.superpose,
+      key = list(title = "Ethnoreligious",
+                 columns = 3,
+                 points = list(pch = super.sym$pch[1:3],
+                               col = super.sym$col[1:3]),
+                 text = list(unique(tmp3$attribute_label))))
+dev.off()
+
+# tenure and place 
+
+tmp3 <- tmp2 %>% 
+  filter(attribute %in% c("accom", "car", "homeowners"))
+
+trellis.par.set("superpose.symbol", list(pch = 0:2))
+super.sym <- trellis.par.get("superpose.symbol")
+
+png("figures/scatter_tenureplace.png", width = 30, height = 30, res = 300, units = "cm")
+
+splom(~tmp3[4:8], groups = attribute, data = tmp3,
+      panel = panel.superpose,
+      key = list(title = "Tenureplace",
+                 columns = 3,
+                 points = list(pch = super.sym$pch[1:3],
+                               col = super.sym$col[1:3]),
+                 text = list(unique(tmp3$attribute_label))))
+dev.off()
 
 
+# health and status
+
+tmp3 <- tmp2 %>% 
+  filter(attribute %in% c("employed", "generalhealth", "inactive", "nssec"))
+
+trellis.par.set("superpose.symbol", list(pch = 0:3))
+super.sym <- trellis.par.get("superpose.symbol")
+
+png("figures/scatter_healthstatus.png", width = 30, height = 30, res = 300, units = "cm")
+
+splom(~tmp3[4:8], groups = attribute, data = tmp3,
+      panel = panel.superpose,
+      key = list(title = "Health and status",
+                 columns = 2,
+                 points = list(pch = super.sym$pch[1:4],
+                               col = super.sym$col[1:4]),
+                 text = list(unique(tmp3$attribute_label))))
+dev.off()
+
+
+# Demographic
+
+tmp3 <- tmp2 %>% 
+  filter(attribute %in% c("inactive", "maritalstatus", "pensioners", "students"))
+
+trellis.par.set("superpose.symbol", list(pch = 0:3))
+super.sym <- trellis.par.get("superpose.symbol")
+
+png("figures/scatter_demographic.png", width = 30, height = 30, res = 300, units = "cm")
+
+splom(~tmp3[4:8], groups = attribute, data = tmp3,
+      panel = panel.superpose,
+      key = list(title = "Demographic",
+                 columns = 2,
+                 points = list(pch = super.sym$pch[1:4],
+                               col = super.sym$col[1:4]),
+                 text = list(unique(tmp3$attribute_label))))
+dev.off()
+
+
+
+# Now how best to rep
 
 
 
