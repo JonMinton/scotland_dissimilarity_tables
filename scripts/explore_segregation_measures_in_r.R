@@ -1,3 +1,10 @@
+# Some to dos
+
+# 1) redo 2 group categories so that first and second group are 'consistent'
+# 2) remerge shapefiles
+# 3) rerun analyses below
+
+
 # Scoping and/or implementation of measures of segregation
 
 rm(list = ls())
@@ -13,6 +20,9 @@ pacman::p_load(
   purrr, tidyr, dplyr, seg, OasisR,
   ggplot2, lattice, tmap
 )
+
+
+
 
 load("rdata/shapefiles_in_dataframe.RData")
 
@@ -200,13 +210,14 @@ load("rdata/shapefiles_in_dataframe.RData")
 simple_results <- task_list %>% 
   select(place, attribute, year, 
          attribute_label = att_label_1,
-         evenness = d_simple_1, 
+         unevenness = d_simple_1, 
          clustering = adj_1, 
          isolation = Eta2, 
          centralisation = rce, 
          concentration = rcon
   ) %>% 
-  gather(key = "dimension", value = "value", evenness:concentration)
+  mutate(centralisation = -1 * centralisation, concentration = -1 * concentration) %>% 
+  gather(key = "dimension", value = "value", unevenness:concentration)
 
 
 
@@ -214,7 +225,7 @@ simple_results <- simple_results %>%
   mutate(dimension = factor(
     dimension, 
     levels = c(
-      "evenness", "isolation", "clustering", 
+      "unevenness", "isolation", "clustering", 
       "centralisation", "concentration")
   )
   )
@@ -232,12 +243,19 @@ png(filename = "figures/scatterplot_year.png", width= 30, height = 30, units = "
 
 super.sym <- trellis.par.get("superpose.symbol")
 p <- splom(~tmp[5:9], groups = year, data = tmp,
-      panel = panel.superpose,
+      panel =  function(x, y, ...) { 
+        panel.xyplot(x, y,  ...)
+        panel.loess(x, y, ...)
+        panel.lmline(x, y, ...)
+      },
       key = list(title = "Values in 2001 and 2011",
                  columns = 2, 
                  points = list(pch = super.sym$pch[1:2],
                                col = super.sym$col[1:2]),
-                 text = list(c("2001", "2011"))))
+                 text = list(c("2001", "2011")))
+      
+      
+      )
 
 print(p)
 dev.off()

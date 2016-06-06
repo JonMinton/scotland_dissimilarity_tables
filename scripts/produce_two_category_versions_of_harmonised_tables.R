@@ -47,8 +47,8 @@ car_n_t2 <- read_csv("output_data/dz_2001/car_2011.csv")
 
 # inconsistency between t1 and t2# t1 already in correct form
 
-car_2_t1 <- car_n_t1
-car_2_t2 <- car_n_t2 %>% transmute(dz_2001, total, none, some = one + two + three + four)
+car_2_t1 <- car_n_t1 %>% select(dz_2001, total, some, none) 
+car_2_t2 <- car_n_t2 %>% transmute(dz_2001, total, some = one + two + three + four, none)
 
 # both ok now and checked 
 
@@ -79,8 +79,8 @@ gh_2_t2 <- gh_n_t2
 llti_n_t1 <- read_csv("output_data/dz_2001/llti_2001.csv")
 llti_n_t2 <- read_csv("output_data/dz_2001/llti_2011.csv")
 # already binary
-llti_2_t1 <- llti_n_t1
-llti_2_t2 <- llti_n_t2
+llti_2_t1 <- llti_n_t1 %>% select(dz_2001, total, no_llti, llti)
+llti_2_t2 <- llti_n_t2 %>% select(dz_2001, total, no_llti, llti)
 
 
 # marstat
@@ -284,8 +284,8 @@ car_n_t2 <- read_csv("output_data/dz_2011/car_2011.csv")
 
 # inconsistency between t1 and t2# t1 already in correct form
 
-car_2_t1 <- car_n_t1
-car_2_t2 <- car_n_t2 %>% transmute(dz_2011, total, none, some = one + two + three + four)
+car_2_t1 <- car_n_t1 %>% transmute(dz_2011, total, some, none)
+car_2_t2 <- car_n_t2 %>% transmute(dz_2011, total, some = one + two + three + four, none )
 
 # both ok now and checked 
 
@@ -316,8 +316,8 @@ gh_2_t2 <- gh_n_t2
 llti_n_t1 <- read_csv("output_data/dz_2011/llti_2001.csv")
 llti_n_t2 <- read_csv("output_data/dz_2011/llti_2011.csv")
 # already binary
-llti_2_t1 <- llti_n_t1
-llti_2_t2 <- llti_n_t2
+llti_2_t1 <- llti_n_t1 %>% select(dz_2011, total, no_llti, llti) 
+llti_2_t2 <- llti_n_t2 %>% select(dz_2011, total, no_llti, llti)
 
 
 # marstat
