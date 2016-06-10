@@ -90,15 +90,13 @@ ms_n_t2 <- read_csv("output_data/dz_2001/marital_status_2011.csv")
 
 # different categories 
 
-ms_2_t1 <- ms_n_t1 %>% transmute(dz_2001, total, 
-                      single = single + separated + divorced + widowed, 
-                      married = married + remarried)
+ms_2_t1 <- ms_n_t1 %>% select(dz_2001, total, married, single)
 
 # checked t1, ok
 
 # checked t2, ok
 
-ms_2_t2 <- ms_n_t2
+ms_2_t2 <- ms_n_t2 %>% select(dz_2001, total, married, single)
 
 
 
@@ -331,15 +329,16 @@ ms_2_t1 <- ms_n_t1 %>%
   transmute(
     dz_2011, 
     total, 
-    single , 
-    married 
+    married, 
+    single 
   )
 
 # checked t1, ok
 
 # checked t2, ok
 
-ms_2_t2 <- ms_n_t2
+ms_2_t2 <- ms_n_t2 %>% 
+  transmute(dz_2011, total, married, single)
 
 
 
