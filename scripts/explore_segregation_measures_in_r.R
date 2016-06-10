@@ -24,187 +24,222 @@ pacman::p_load(
 
 
 
-#load("rdata/shapefiles_in_dataframe.RData")
+load("rdata/shapefiles_in_dataframe.RData")
 
 
-fls <- list.files("shapefiles_with_attributes/2grp_2011/ttwa", "\\.shp$")
+# fls <- list.files("shapefiles_with_attributes/2grp_2011/ttwa", "\\.shp$")
+# 
+# task_list <- data_frame(filename =fls) %>%
+#   mutate(tmp = str_replace(filename, "\\.shp$", "")) %>%
+#   separate(tmp, into = c("place", "attribute", "year"), sep = "_")
+# 
+# 
+# # First, create a function which saves each shapefile into an element of a not-quite dataframe
+# 
+# 
+# get_shapefiles <- function(filename){
+#   filename_short <- str_replace(filename, "\\.shp$", "")
+#   this_shp <- readOGR(
+#     dsn = "shapefiles_with_attributes/2grp_2011/ttwa",
+#     layer = filename_short
+#   )
+# 
+#   return(this_shp)
+# }
+# 
+# task_list <- task_list %>%
+#   mutate(shp = map(filename, get_shapefiles))
+# 
+# 
+# # extract data portion of each object
+# task_list <- task_list %>%
+#   mutate(dta = map(shp, ~ slot(., "data")))
+# 
+# # Now neighbourhood matrix
+# 
+# get_nhd <- function(x){
+# 
+#   output <- x %>%
+#     poly2nb(., queen = FALSE) %>%
+#     nb2mat(., style = "B", zero.policy = T)
+#   return(output)
+# }
+# 
+# task_list <- task_list %>%
+#   mutate(nhd = map(shp, get_nhd))
+# 
+# # Now to add the measures one by one
+# 
+# get_simple_d_and_names <- function(x){
+#   attribute_names <- names(x)[c(12, 13)]
+#   counts_matrix <- x[,c(12, 13)]
+#   dissim <- OasisR::DI(counts_matrix)
+#   output <- list(
+#     attribute_names = attribute_names,
+#     simple_d_1 = dissim[2,1],
+#     simple_d_2 = dissim[1,2]
+#   )
+#   return(output)
+# }
+# # Calculate indices for each separately
+# 
+# get_adj_d <- function(x, y){
+#   counts_matrix <- x[,c(12, 13)]
+#   outputs <- OasisR::Morill(counts_matrix, y)
+#   return(outputs)
+# }
+# # Morill(dta@data[,c("house", "nonhouse")], nhd_matrix)
+# 
+# 
+# 
+# 
+# task_list <- task_list %>%
+#   mutate(
+#     d_simple_and_att_names = map(dta, get_simple_d_and_names),
+#     d_adj_both = map2(dta, nhd, get_adj_d),
+#     d_adj_1 = map_dbl(d_adj_both, ~ .[1]),
+#     d_adj_2 = map_dbl(d_adj_both, ~ .[2]),
+#     d_simple_1 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_1"]]),
+#     d_simple_2 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_2"]]),
+#     att_label_1 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][1]),
+#     att_label_2 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][2])
+#   ) %>%
+#   select(-d_simple_and_att_names, d_adj_both)
+# 
+# task_list <- task_list %>%
+#   mutate(
+#     d_simple_and_att_names = map(dta, get_simple_d_and_names),
+#     d_adj_both = map2(dta, nhd, get_adj_d),
+#     d_adj_1 = map_dbl(d_adj_both, ~ .[1]),
+#     d_adj_2 = map_dbl(d_adj_both, ~ .[2]),
+#     d_simple_1 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_1"]]),
+#     d_simple_2 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_2"]]),
+#     att_label_1 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][1]),
+#     att_label_2 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][2])
+#   ) %>%
+#   select(-d_simple_and_att_names, d_adj_both)
+# 
+# 
+# task_list <- task_list %>%
+#   mutate(
+#     adj_1 = d_simple_1 - d_adj_1,
+#     adj_2 = d_simple_2 - d_adj_2
+# 
+#   )
+# 
+# get_xPx <- function(x){
+#   counts_matrix <- x[,c(12, 13)]
+#   output <- OasisR::xPx(counts_matrix)
+#   return(output)
+# }
+# 
+# 
+# task_list <- task_list %>%
+#   mutate(xPx = map(dta, get_xPx)) %>%
+#   mutate(
+#     xPx_1 = map_dbl(xPx, ~ .[1]),
+#     xPx_2 = map_dbl(xPx, ~ .[2])
+#   ) %>%
+#   select(-xPx)
+# 
+# 
+# get_Eta2 <- function(x){
+#   counts_matrix <- x[,c(12, 13)]
+#   output <- OasisR::Eta2(counts_matrix) %>% .[1]
+#   return(output)
+# }
+# 
+# task_list <- task_list %>%
+#   mutate(Eta2 = map_dbl(dta, get_Eta2))
+# 
+# get_rce <- function(dta, shp){
+#   counts_matrix <- dta[,c(12, 13)]
+#   cntr <- which(dta$centre == 1)
+#   distc <- distcenter(shp, center = cntr)
+#   rce <- RCE(
+#     x = counts_matrix,
+#     dc = distc,
+#     center = cntr
+#   )
+#   output <- rce[2,1]
+#   return(output)
+# }
+# 
+# task_list <- task_list %>%
+#   mutate(rce = map2_dbl(dta, shp, get_rce))
+# 
+# 
+# # Bespoke concentration measure using same approach as RCE
+# 
+# get_rcon <- function(dta, shp){
+#   # rcon (borrows code from OasisR::RCE)
+#   rcon <- function(x, dens){
+#     x <- as.matrix(x)
+#     result <- matrix(data = 0, nrow = ncol(x), ncol = ncol(x))
+#     varTotal <- colSums(x)
+#     xprovi <- cbind(x, dens)
+#     xprovi <- xprovi[order(xprovi[, ncol(xprovi)], decreasing = T), ]
+#     # highest to lowest density, so should be decreasing
+#     xprovi <- as.data.frame(xprovi)
+#     for (k1 in 1:ncol(x)) for (k2 in 1:ncol(x)) {
+#       XI1 <- cumsum(xprovi[, k1])[1:(nrow(xprovi) - 1)]/varTotal[k1]
+#       XI <- cumsum(xprovi[, k1])[2:nrow(xprovi)]/varTotal[k1]
+#       YI1 <- cumsum(xprovi[, k2])[1:(nrow(xprovi) - 1)]/varTotal[k2]
+#       YI <- cumsum(xprovi[, k2])[2:nrow(xprovi)]/varTotal[k2]
+#       result[k1, k2] <- XI1 %*% YI - XI %*% YI1
+#     }
+#     return(result)
+#   }
+# 
+#   dens <- tmap::calc_densities(shp, var = "total")
+# 
+#   counts_matrix <- dta[,c(12, 13)]
+#   output <- rcon(counts_matrix, dens) %>% .[2, 1]
+#   return(output)
+# }
+# 
+# task_list <- task_list %>%
+#   mutate(rcon = map2_dbl(dta, shp, get_rcon))
+# 
+# 
+# save(task_list, file = "rdata/shapefiles_in_dataframe.RData")
 
-task_list <- data_frame(filename =fls) %>%
-  mutate(tmp = str_replace(filename, "\\.shp$", "")) %>%
-  separate(tmp, into = c("place", "attribute", "year"), sep = "_")
 
+# Create alternative attribute labels 
 
-# First, create a function which saves each shapefile into an element of a not-quite dataframe
+pretty_att_label_1 <- c(
+  house = "Lives in a house",
+  some = "Owns at least one car",
+  scotland = "Born in Scotland",
+  employd = "Is in employment",
+  white = "Is White",
+  good = "Reports good general health",
+  owned = "Owns home",
+  active = "Is economically active",
+  no_llti = "Does not report LLTI",
+  married = "Is married",
+  higher = "Higher managerial/professional occupation",
+  pensinr = "Is a pensioner",
+  religis = "Has a religion",
+  student = "Is a student"
+)
 
-
-get_shapefiles <- function(filename){
-  filename_short <- str_replace(filename, "\\.shp$", "")
-  this_shp <- readOGR(
-    dsn = "shapefiles_with_attributes/2grp_2011/ttwa",
-    layer = filename_short
-  )
-
-  return(this_shp)
-}
-
-task_list <- task_list %>%
-  mutate(shp = map(filename, get_shapefiles))
-
-
-# extract data portion of each object
-task_list <- task_list %>%
-  mutate(dta = map(shp, ~ slot(., "data")))
-
-# Now neighbourhood matrix
-
-get_nhd <- function(x){
-
-  output <- x %>%
-    poly2nb(., queen = FALSE) %>%
-    nb2mat(., style = "B", zero.policy = T)
-  return(output)
-}
-
-task_list <- task_list %>%
-  mutate(nhd = map(shp, get_nhd))
-
-# Now to add the measures one by one
-
-get_simple_d_and_names <- function(x){
-  attribute_names <- names(x)[c(12, 13)]
-  counts_matrix <- x[,c(12, 13)]
-  dissim <- OasisR::DI(counts_matrix)
-  output <- list(
-    attribute_names = attribute_names,
-    simple_d_1 = dissim[2,1],
-    simple_d_2 = dissim[1,2]
-  )
-  return(output)
-}
-# Calculate indices for each separately
-
-get_adj_d <- function(x, y){
-  counts_matrix <- x[,c(12, 13)]
-  outputs <- OasisR::Morill(counts_matrix, y)
-  return(outputs)
-}
-# Morill(dta@data[,c("house", "nonhouse")], nhd_matrix)
-
-
-
-
-task_list <- task_list %>%
-  mutate(
-    d_simple_and_att_names = map(dta, get_simple_d_and_names),
-    d_adj_both = map2(dta, nhd, get_adj_d),
-    d_adj_1 = map_dbl(d_adj_both, ~ .[1]),
-    d_adj_2 = map_dbl(d_adj_both, ~ .[2]),
-    d_simple_1 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_1"]]),
-    d_simple_2 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_2"]]),
-    att_label_1 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][1]),
-    att_label_2 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][2])
-  ) %>%
-  select(-d_simple_and_att_names, d_adj_both)
-
-task_list <- task_list %>%
-  mutate(
-    d_simple_and_att_names = map(dta, get_simple_d_and_names),
-    d_adj_both = map2(dta, nhd, get_adj_d),
-    d_adj_1 = map_dbl(d_adj_both, ~ .[1]),
-    d_adj_2 = map_dbl(d_adj_both, ~ .[2]),
-    d_simple_1 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_1"]]),
-    d_simple_2 = map_dbl(d_simple_and_att_names, ~ .[["simple_d_2"]]),
-    att_label_1 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][1]),
-    att_label_2 = map_chr(d_simple_and_att_names, ~ .[["attribute_names"]][2])
-  ) %>%
-  select(-d_simple_and_att_names, d_adj_both)
-
-
-task_list <- task_list %>%
-  mutate(
-    adj_1 = d_simple_1 - d_adj_1,
-    adj_2 = d_simple_2 - d_adj_2
-
-  )
-
-get_xPx <- function(x){
-  counts_matrix <- x[,c(12, 13)]
-  output <- OasisR::xPx(counts_matrix)
-  return(output)
-}
-
-
-task_list <- task_list %>%
-  mutate(xPx = map(dta, get_xPx)) %>%
-  mutate(
-    xPx_1 = map_dbl(xPx, ~ .[1]),
-    xPx_2 = map_dbl(xPx, ~ .[2])
-  ) %>%
-  select(-xPx)
-
-
-get_Eta2 <- function(x){
-  counts_matrix <- x[,c(12, 13)]
-  output <- OasisR::Eta2(counts_matrix) %>% .[1]
-  return(output)
-}
-
-task_list <- task_list %>%
-  mutate(Eta2 = map_dbl(dta, get_Eta2))
-
-get_rce <- function(dta, shp){
-  counts_matrix <- dta[,c(12, 13)]
-  cntr <- which(dta$centre == 1)
-  distc <- distcenter(shp, center = cntr)
-  rce <- RCE(
-    x = counts_matrix,
-    dc = distc,
-    center = cntr
-  )
-  output <- rce[2,1]
-  return(output)
-}
-
-task_list <- task_list %>%
-  mutate(rce = map2_dbl(dta, shp, get_rce))
-
-
-# Bespoke concentration measure using same approach as RCE
-
-get_rcon <- function(dta, shp){
-  # rcon (borrows code from OasisR::RCE)
-  rcon <- function(x, dens){
-    x <- as.matrix(x)
-    result <- matrix(data = 0, nrow = ncol(x), ncol = ncol(x))
-    varTotal <- colSums(x)
-    xprovi <- cbind(x, dens)
-    xprovi <- xprovi[order(xprovi[, ncol(xprovi)], decreasing = T), ]
-    # highest to lowest density, so should be decreasing
-    xprovi <- as.data.frame(xprovi)
-    for (k1 in 1:ncol(x)) for (k2 in 1:ncol(x)) {
-      XI1 <- cumsum(xprovi[, k1])[1:(nrow(xprovi) - 1)]/varTotal[k1]
-      XI <- cumsum(xprovi[, k1])[2:nrow(xprovi)]/varTotal[k1]
-      YI1 <- cumsum(xprovi[, k2])[1:(nrow(xprovi) - 1)]/varTotal[k2]
-      YI <- cumsum(xprovi[, k2])[2:nrow(xprovi)]/varTotal[k2]
-      result[k1, k2] <- XI1 %*% YI - XI %*% YI1
-    }
-    return(result)
-  }
-
-  dens <- tmap::calc_densities(shp, var = "total")
-
-  counts_matrix <- dta[,c(12, 13)]
-  output <- rcon(counts_matrix, dens) %>% .[2, 1]
-  return(output)
-}
-
-task_list <- task_list %>%
-  mutate(rcon = map2_dbl(dta, shp, get_rcon))
-
-
-save(task_list, file = "rdata/shapefiles_in_dataframe.RData")
-
-
+pretty_att_label_2 <- c(
+  nonhouse = "Does not live in a house",
+  none = "Has no car in household",
+  nonscot = "Is not Scottish born",
+  nnmployed = "Is not employed",
+  nonwhite = "Is not White",
+  not_good = "Does not report good health",
+  nonowned = "Does not own accommodation",
+  inactive = "Is economically inactive",
+  llti = "Reports a limiting long term illness",
+  single = "Is not married",
+  lower = "Has less than professional/managerial occupation",
+  nnpnsnr = "Is not a pensioner",
+  nonrlgs = "Does not report a religion",
+  nonstudent = "Is not a student"
+)
 
 
 simple_results <- task_list %>% 
@@ -219,15 +254,15 @@ simple_results <- task_list %>%
   mutate(centralisation = -1 * centralisation, concentration = -1 * concentration) %>% 
   gather(key = "dimension", value = "value", unevenness:concentration)
 
-
-
 simple_results <- simple_results %>% 
-  mutate(dimension = factor(
-    dimension, 
-    levels = c(
-      "unevenness", "isolation", "clustering", 
-      "centralisation", "concentration")
-  )
+  mutate(
+    dimension = factor(
+      dimension, 
+      levels = c(
+        "unevenness", "isolation", "clustering", 
+        "centralisation", "concentration")
+    ),
+  pretty_attribute_label = pretty_att_label_1[attribute_label]
   )
 
 
@@ -241,8 +276,9 @@ simple_results  %>% spread(dimension, value)  -> tmp
 
 png(filename = "figures/scatterplot_year.png", width= 30, height = 30, units = "cm", res = 300)
 
+trellis.par.set("superpose.symbol", list(pch = 0:1))
 super.sym <- trellis.par.get("superpose.symbol")
-p <- splom(~tmp[5:9], groups = year, data = tmp,
+p <- splom(~tmp[6:10], groups = year, data = tmp,
       panel =  function(x, y, ...) { 
         panel.xyplot(x, y,  ...)
         panel.loess(x, y, ...)
@@ -277,7 +313,7 @@ png(filename = "figures/scatterplot_change_ttwa.png", width= 30, height = 30, un
 trellis.par.set("superpose.symbol", list(pch = 0:6))
 super.sym <- trellis.par.get("superpose.symbol")
 
-p <- splom(~tmp2[4:8], groups = place, data = tmp2,
+p <- splom(~tmp2[5:9], groups = place, data = tmp2,
       panel = function(x, y, ...) { 
         panel.xyplot(x, y,  ...)
         panel.loess(x, y, ...)
@@ -303,9 +339,9 @@ png("figures/scatter_all_attributes.png", width = 60, height = 60, units = "cm",
 trellis.par.set("superpose.symbol", list(pch = 0:6))
 super.sym <- trellis.par.get("superpose.symbol")
 
-splom(~tmp2[4:8] | attribute, groups = place, data = tmp2,
+splom(~tmp2[5:9] | attribute, groups = place, data = tmp2,
       key = list(title = "Values by TTWA",
-                 columns = 4, rows = 2,
+                 columns = 4, rows = 3,
                  points = list(pch = super.sym$pch[1:7],
                                col = super.sym$col[1:7]),
                  text = list(unique(tmp2$place)))
@@ -327,18 +363,22 @@ trellis.par.set("superpose.symbol", list(pch = 0:3))
 super.sym <- trellis.par.get("superpose.symbol")
 
 png("figures/scatter_socioeconomic.png", width = 30, height = 30, res = 300, units = "cm")
-splom(~tmp3[4:8], groups = attribute, data = tmp3,
-      panel = panel.superpose,
+splom(~tmp3[5:9], groups = pretty_attribute_label, data = tmp3,
+      panel = function(x, y, ...) { 
+        panel.xyplot(x, y,  ...)
+        panel.loess(x, y, ...)
+        panel.lmline(x, y, ...)
+      },
       key = list(title = "Socioeconomic attribute",
                  columns = 2, rows = 2,
                  points = list(pch = super.sym$pch[1:4],
                                col = super.sym$col[1:4]),
-                 text = list(unique(tmp3$attribute))))
+                 text = list(unique(tmp3$pretty_attribute_label))))
 
 dev.off()
 
 
-# ethnosomethingism 
+# ethnosreligious 
 
 tmp3 <- tmp2 %>% 
   filter(attribute %in% c("eth", "cob", "religion"))
@@ -348,31 +388,20 @@ super.sym <- trellis.par.get("superpose.symbol")
 
 png("figures/scatter_ethnoreligious.png", width = 30, height = 30, res = 300, units = "cm")
 
-splom(~tmp3[4:8], groups = attribute, data = tmp3,
-      panel = panel.superpose,
+splom(~tmp3[5:9], groups = pretty_attribute_label, data = tmp3,
+      panel = function(x, y, ...) { 
+        panel.xyplot(x, y,  ...)
+        panel.loess(x, y, ...)
+        panel.lmline(x, y, ...)
+      },
       key = list(title = "Ethnoreligious",
                  columns = 3,
                  points = list(pch = super.sym$pch[1:3],
                                col = super.sym$col[1:3]),
-                 text = list(unique(tmp3$attribute_label))))
+                 text = list(unique(tmp3$pretty_attribute_label)))
+      )
 dev.off()
 
-tmp3 <- tmp2 %>% 
-  filter(attribute %in% c("eth", "cob", "religion"))
-
-trellis.par.set("superpose.symbol", list(pch = 0:2))
-super.sym <- trellis.par.get("superpose.symbol")
-
-png("figures/scatter_ethnoreligious.png", width = 30, height = 30, res = 300, units = "cm")
-
-splom(~tmp3[4:8], groups = attribute, data = tmp3,
-      panel = panel.superpose,
-      key = list(title = "Ethnoreligious",
-                 columns = 3,
-                 points = list(pch = super.sym$pch[1:3],
-                               col = super.sym$col[1:3]),
-                 text = list(unique(tmp3$attribute_label))))
-dev.off()
 
 # tenure and place 
 
@@ -384,13 +413,17 @@ super.sym <- trellis.par.get("superpose.symbol")
 
 png("figures/scatter_tenureplace.png", width = 30, height = 30, res = 300, units = "cm")
 
-splom(~tmp3[4:8], groups = attribute, data = tmp3,
-      panel = panel.superpose,
-      key = list(title = "Tenureplace",
+splom(~tmp3[5:9], groups = pretty_attribute_label, data = tmp3,
+      panel = function(x, y, ...) { 
+        panel.xyplot(x, y,  ...)
+        panel.loess(x, y, ...)
+        panel.lmline(x, y, ...)
+      },
+      key = list(title = "Tenure and place",
                  columns = 3,
                  points = list(pch = super.sym$pch[1:3],
                                col = super.sym$col[1:3]),
-                 text = list(unique(tmp3$attribute_label))))
+                 text = list(unique(tmp3$pretty_attribute_label))))
 dev.off()
 
 
@@ -404,13 +437,17 @@ super.sym <- trellis.par.get("superpose.symbol")
 
 png("figures/scatter_healthstatus.png", width = 30, height = 30, res = 300, units = "cm")
 
-splom(~tmp3[4:8], groups = attribute, data = tmp3,
-      panel = panel.superpose,
+splom(~tmp3[5:9], groups = pretty_attribute_label, data = tmp3,
+      panel = function(x, y, ...) { 
+        panel.xyplot(x, y,  ...)
+        panel.loess(x, y, ...)
+        panel.lmline(x, y, ...)
+      },
       key = list(title = "Health and status",
                  columns = 2,
                  points = list(pch = super.sym$pch[1:4],
                                col = super.sym$col[1:4]),
-                 text = list(unique(tmp3$attribute_label))))
+                 text = list(unique(tmp3$pretty_attribute_label))))
 dev.off()
 
 
@@ -424,13 +461,17 @@ super.sym <- trellis.par.get("superpose.symbol")
 
 png("figures/scatter_demographic.png", width = 30, height = 30, res = 300, units = "cm")
 
-splom(~tmp3[4:8], groups = attribute, data = tmp3,
-      panel = panel.superpose,
+splom(~tmp3[5:9], groups = pretty_attribute_label, data = tmp3,
+      panel = function(x, y, ...) { 
+        panel.xyplot(x, y,  ...)
+        panel.loess(x, y, ...)
+        panel.lmline(x, y, ...)
+      },
       key = list(title = "Demographic",
                  columns = 2,
                  points = list(pch = super.sym$pch[1:4],
                                col = super.sym$col[1:4]),
-                 text = list(unique(tmp3$attribute_label))))
+                 text = list(unique(tmp3$pretty_attribute_label))))
 dev.off()
 
 
